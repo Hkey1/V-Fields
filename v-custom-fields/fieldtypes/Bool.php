@@ -164,7 +164,7 @@ class Bool extends FieldType {
 		echo "</br>";
 	}
 	///////////////////////////////////////////////////////////////////////
-	function UpdateField($fieldid,$data)
+	function UpdateField($fieldid,$data,$params = NULL)
 	{
 		echo $fieldid." __ ".$data;
 				

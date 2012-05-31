@@ -5,7 +5,6 @@ $(document).ready(function() {
 	//////////////////////////////////////
     $("#tabs").tabs();
 	//////////////////////////////////////
-    $("#radio,#view_radio").buttonset();
     //////////////////////////////////////
 	//Hover fo buttons
 	$('.ui-button').hover(
@@ -195,7 +194,7 @@ $(document).ready(function() {
 						 success :function(data)
 						 {
 					        current_div.html(data);
-					        $("#radio,#view_radio").buttonset();
+
 						 }
 						 });
 			}));

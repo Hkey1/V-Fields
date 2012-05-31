@@ -61,13 +61,8 @@ class Text extends FieldType {
 				<div class=\"field_settings\">
 					<p>Max Length:<br/> <input type=\"text\" name=\"max_length\" class=\"default\" value=\"" . $this->get_maxlength () . "\"/></p>					
 					<p>Default:<br/> <textarea name=\"default\" cols=80 rows=10>" . $this->get_default () . "</textarea></p>
-					<p>View: <br/>
-						<div id=\"view_radio\">
-						<input type=\"radio\" id=\"view1\" group=\"view\" name=\"view\" value=\"0\" checked /><label for=\"view1\">Default</label>
-						<input type=\"radio\" id=\"view2\" group=\"view\" name=\"view\" value=\"1\"  /><label for=\"view2\">List view(ul/li)</label>
-						<input type=\"radio\" id=\"view3\" group=\"view\" name=\"view\" value=\"2\"  /><label for=\"view3\">List view(br)</label> 
-						<input type=\"radio\" id=\"view4\" group=\"view\" name=\"view\" value=\"3\"  /><label for=\"view4\">User's view(HTML Editor) </label>
-						</div>
+					<p>Wysiwyg: 
+						<input type=\"checkbox\" name=\"html_editor\" id=\"html_editor\" class=\"html_editor\" value=\"1\" />
 					</p>
 					<p><b>text search</b> <input type=\"checkbox\" name=\"search\" checked=\"checked\" value=\"1\" /></p>
 					</div>
@@ -119,7 +114,11 @@ class Text extends FieldType {
 		else
 			$search_checked = "";
 		$selection = make_select_list ( $select );
-		$str = "<div class=\"section\">
+		if($array['html_editor'] == 1)
+			$wysiwyg = "<input type=\"checkbox\" name=\"html_editor\"  class=\"html_editor\" value=\"1\" checked=\"true\" />";
+		else 	
+			$wysiwyg = "<input type=\"checkbox\" name=\"html_editor\"  class=\"html_editor\" value=\"1\" />";
+			$str = "<div class=\"section\">
 				<h3>
 				     <span class=\"container\">
 				     	<input type=\"hidden\" name=\"hr\" value=\"true\">
@@ -133,14 +132,9 @@ class Text extends FieldType {
 				<div class=\"field_settings\">
 					<p>Max Length:<br/> <input type=\"text\" name=\"max_length\" class=\"default\" value=\"" . $max_length . "\"/></p>					
 					<p>Default:<br/> <textarea name=\"default\" cols=80 rows=10>" . $default . "</textarea></p>
-					<p>View: <br/>
-						<div id=\"view_radio\">
-						<input type=\"radio\" id=\"view1\" group=\"view\" name=\"view\" value=\"0\" ".($array['view'] == '0' ? "checked ":" ")." /><label for=\"view1\">Default</label>
-						<input type=\"radio\" id=\"view2\" group=\"view\" name=\"view\" value=\"1\"  ".($array['view'] == '1' ? "checked ":" ")." /><label for=\"view2\">List view(ul/li)</label>
-						<input type=\"radio\" id=\"view3\" group=\"view\" name=\"view\" value=\"2\"  ".($array['view'] == '2' ? "checked ":" ")." /><label for=\"view3\">List view(br)</label> 
-						<input type=\"radio\" id=\"view4\" group=\"view\" name=\"view\" value=\"3\"  ".($array['view'] == '3' ? "checked ":" ")." /><label for=\"view4\">User's view(HTML Editor) </label>
-						</div>
-						</p>
+					<p>Wysiwyg: 
+					$wysiwyg
+					</p>
 					<p><b>text search</b> <input type=\"checkbox\" name=\"search\" value=\"1\" $search_checked /></p>
 					</div>
 			</div>";
@@ -162,7 +156,7 @@ class Text extends FieldType {
 			if (! $value)
 				$value = "";
 		}
-		if($array['view'] == '3')
+		if($array['html_editor'] == '1')
 		$result = $result . "<script>$(document).ready(function()
 		{
 		tinyMCE.init({
@@ -182,14 +176,9 @@ class Text extends FieldType {
 	function ChangeType() {
 		$str = "<p>Max Length:<br/> <input type=\"text\" name=\"max_length\" class=\"default\" value=\"" . $this->get_maxlength () . "\"/></p>
 		<p>Default:<br/> <textarea name=\"default\" cols=80 rows=10>" . $this->get_default () . "</textarea></p>
-		<p>View: <br/>
-			<div id=\"view_radio\">
-			<input type=\"radio\" id=\"view1\" group=\"view\" name=\"view\" value=\"0\" checked /><label for=\"view1\">Default</label>
-			<input type=\"radio\" id=\"view2\" group=\"view\" name=\"view\" value=\"1\"  /><label for=\"view2\">List view(ul/li)</label>
-			<input type=\"radio\" id=\"view3\" group=\"view\" name=\"view\" value=\"2\"  /><label for=\"view3\">List view(br)</label> 
-			<input type=\"radio\" id=\"view4\" group=\"view\" name=\"view\" value=\"3\"  /><label for=\"view4\">User's view(HTML Editor) </label>
-			</div>
-		</p>
+					<p>Wysiwyg: 
+						<input type=\"checkbox\" name=\"html_editor\" id=\"html_editor\" class=\"html_editor\" value=\"1\" />
+					</p>
 		<p><b>text search</b> <input type=\"checkbox\" name=\"search\" checked=\"checked\" value=\"1\" /></p>";
 		return $str;
 	}
@@ -204,9 +193,9 @@ class Text extends FieldType {
 		$options = unserialize($array['options']);
 		$max_length = $options['max_length'];
 		$formatted = "";
-		if($options['view'] == '0' || $options['view'] == '3')
-			$formatted = $array['data'];
-		if($options['view'] == '1')
+		//if($options['view'] == '0' || $options['view'] == '3')
+		//	$formatted = $array['data'];
+		if($params['view'] == 'list')
 		{
 			$content = explode("\n",$array['data']);
 			foreach($content as $row)
@@ -216,7 +205,7 @@ class Text extends FieldType {
 				$formatted .= "</ul>";
 			}
 		}
-		if($options['view'] == '2')
+		if($params['view'] == 'br')
 		{
 			$content = explode("\n",$array['data']);
 			foreach($content as $row)
@@ -239,7 +228,7 @@ class Text extends FieldType {
 		return $result;
 	}
 	///////////////////////////////////////////////////////////////////////
-	function UpdateField($fieldid,$data)
+	function UpdateField($fieldid,$data,$params = NULL)
 	{		
 		if ($this->user_level != 10)
 			return;

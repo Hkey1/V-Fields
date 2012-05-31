@@ -22,7 +22,7 @@ switch ($operation) {
 		ChangeType ( $_POST ['data'] );
 		break;
 	case "update_field" :
-		UpdateField( $_POST['fieldtype'],$_POST['fieldid'], $_POST['data'] );
+		UpdateField( $_POST['fieldtype'],$_POST['fieldid'], $_POST['data'], $_POST['params'] );
 		break;
 	default :
 		echo "ERROR";
@@ -91,7 +91,7 @@ function ChangeType($fieldtype) {
 }
 //
 
-function UpdateField($fieldtype = NULL, $fieldid = NULL, $data = NULL)
+function UpdateField($fieldtype = NULL, $fieldid = NULL, $data = NULL,$params = NULL)
 {	
 	if(!$fieldtype || !$fieldid)
 		return;
@@ -99,7 +99,7 @@ function UpdateField($fieldtype = NULL, $fieldid = NULL, $data = NULL)
 		return;
 	$current_class = new ReflectionClass ( $fieldtype );
 	$current_object = $current_class->newInstance ();
-	$current_object->UpdateField($fieldid,$data);
+	$current_object->UpdateField($fieldid,$data,$params);
 	unset($current_object);
 	
 }

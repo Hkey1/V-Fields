@@ -206,7 +206,7 @@ class Select extends FieldType {
 		return $result;
 	}
 	///////////////////////////////////////////////////////////////////////
-	function UpdateField($fieldid,$data)
+	function UpdateField($fieldid,$data,$params = NULL)
 	{
 				
 		if ($this->user_level != 10)

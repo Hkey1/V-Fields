@@ -52,7 +52,7 @@ $(document).ready(function(){
 					$.ajax({ 
 						 type: "POST",
 						 url: "/wp-content/plugins/v-custom-fields/v-ajax.php",
-						 data: {operation: "update_field",fieldtype: "Digit",fieldid: attr,data: $("."+attr+" input").val()},
+						 data: {operation: "update_field",fieldtype: "Digit",fieldid: attr,data: $("."+attr+" .edit_digit").val(),params: $("."+attr+" .backup_params").val()},
 						 beforeSend: function()
 						 {
 

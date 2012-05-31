@@ -248,20 +248,20 @@ class Digit extends FieldType {
 	function make_dec_div($params,$value)
 	{
 		$data = $value;
-		if($params['division'] == "1")
+		if($params['division'])
 			{
 				if(ctype_digit($params['dec']))
 				{
 					$del = 1;
-					if($params['dec'] == "1")
+					if($params['dec'] == 1)
 						$del = 10;
-					if($params['dec'] == "2")
+					if($params['dec'] == 2)
 						$del = 100;
-				    if($params['dec'] == "3")
+				    if($params['dec'] == 3)
 						$del = 1000;
-					if($params['dec'] == "4")
+					if($params['dec'] == 4)
 						$del = 10000;
-					if($params['dec'] == "5")
+					if($params['dec'] == 5)
 						$del = 100000;
 					$data = floor($data*$del)/$del;
 					$data = number_format($data,$params['dec'],"."," ");
@@ -271,18 +271,18 @@ class Digit extends FieldType {
 			}
 			else 
 			{
-				if($params['dec'] != "0")
+				if(ctype_digit($params['dec']))
 				{
 					$del = 1;
-					if($params['dec'] == "1")
+					if($params['dec'] == 1)
 						$del = 10;
-					if($params['dec'] == "2")
+					if($params['dec'] == 2)
 						$del = 100;
-				    if($params['dec'] == "3")
+				    if($params['dec'] == 3)
 						$del = 1000;
-					if($params['dec'] == "4")
+					if($params['dec'] == 4)
 						$del = 10000;
-					if($params['dec'] == "5")
+					if($params['dec'] == 5)
 						$del = 100000;
 					$data = floor($data*$del)/$del;			
 					$data = number_format($data,$params['dec'],".","");
@@ -291,7 +291,8 @@ class Digit extends FieldType {
 				}
 			}
 			//////Спряжения
-			$declensions = explode("\n",$params['declensions']);
+			//$declensions = explode("\n",$params['declensions']);
+			$declensions = $params['declensions'];
 			//Если у нас три формы заданы в админке
 			if(count($declensions) == 3)
 			{
@@ -337,30 +338,41 @@ class Digit extends FieldType {
 	{
 		if(!$array)
 			return;
+		global $wpdb;
 		$id = $array['id'];
 		$data = $array['data'];
 		$options = unserialize($array['options']);
 		///Количество цифр дробной части
-		$data = $this->make_dec_div($options, $array['data']);
+		$data = $this->make_dec_div($params, $array['data']);
 		//////Конец спряжениям
 		
 		$result = "";
+		$backup_params = "";
 		if($this->user_level != 10)
 		{
 			$result .= "<span>".$data."</span></br>";
 			$result .= "</br>";
 			return $result;
 		}
+		/*
+		 * Добавляем скрытое поле backup_params. В нем хранится зашифрованное значение параметров передаваемых в функцию out, для того,
+		 * чтобы когда на лету изменяли значения на сайте, действовали изначальные параметры передаваемые в OUT() (разряд, спряжение, округление)
+		 * */
+		if($params != NULL)
+		{
+			$backup_params = "<input type=\"hidden\" class=\"backup_params\" name=\"backup_params\" value=\"".urlencode(serialize($params))."\"/>";
+		}
 		$edit_data = $array['data'];		
 		$result .= "<span id=\"$id\" class=\"digit ui-widget-content ui-widget-shadow  ui-corner-all\">".$data."</span>";
 		$result .= "<div style=\"display:none;\" class=\"$id\" title=\"Edit value\">
-		<input type=\"text\" value=\"$edit_data\">
+		<input type=\"text\" class=\"edit_digit\" value=\"$edit_data\">
+		".$backup_params."
 		</div>";
 		$result .= "</br>";
 		return $result;
 	}
 	//////////////////////////////////////////////////////////////////////
-	function UpdateField($fieldid,$data)
+	function UpdateField($fieldid,$data,$params = NULL)
 	{
 		if ($this->user_level != 10)
 			return;
@@ -387,7 +399,9 @@ class Digit extends FieldType {
 		if(ctype_digit($post_id) && strlen($fieldname))
 			update_post_meta($post_id,$fieldname,$data);
 		//
-		$data = $this->make_dec_div($options, $data);
+		if($params != NULL)
+			$params = unserialize(urldecode($params));
+		$data = $this->make_dec_div($params, $data);
 		echo $data;
 	}
 	//////////////////////////////////////////////////////////////////////	

@@ -119,6 +119,7 @@ class CFields {
 	/////
 	static function Show_Edit() {
 		global $user_level;
+		global $post;
 		if ($user_level != 10)
 			return;
 		global $wpdb;

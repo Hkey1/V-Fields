@@ -187,7 +187,7 @@ function v_custom_fields_save_postdata($post_id) {
 		foreach ( $fields as $row ) {
 			$data = $_POST [$row ['translit']];
 			$translit = $row ['translit'];
-			$fieldclass = $wpdb->get_var("SELECT name FROM v_field_types WHERE id=".$row['fieldtype']);
+			$fieldclass = $wpdb->get_var("SELECT name FROM ".$wpdb->prefix."v_field_types WHERE id=".$row['fieldtype']);
 			$current_class = new ReflectionClass ($fieldclass);
 			$current_object = $current_class->newInstance ();
 			$error = $current_object->ValidatePostField($row,&$data);
@@ -198,7 +198,7 @@ function v_custom_fields_save_postdata($post_id) {
 					continue;
 				$_SESSION['field_errors'] = $_SESSION['field_errors'].$error;
 			}
-			$wpdb->query ( "INSERT INTO v_fields (translit,post_id,data) VALUES ('$translit',$post_id,'$data')" );
+			$wpdb->query ( "INSERT INTO  ".$wpdb->prefix."v_fields (translit,post_id,data) VALUES ('$translit',$post_id,'$data')" );
 			if(!update_post_meta($post_id,$translit,$data))
 			add_post_meta($post_id, $translit, $data);
 		}
@@ -210,7 +210,7 @@ function v_custom_fields_save_postdata($post_id) {
 function v_custom_fields_activate()
 {
 	global $wpdb;
-	$wpdb->query("CREATE TABLE IF NOT EXISTS `v_fields` (
+	$wpdb->query("CREATE TABLE IF NOT EXISTS `".$wpdb->prefix."v_fields` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `translit` varchar(100) NOT NULL,
   `post_id` int(11) NOT NULL,
@@ -220,38 +220,52 @@ function v_custom_fields_activate()
   KEY `id_2` (`id`),
   KEY `field_id` (`translit`),
   KEY `field_id_2` (`translit`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;");
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;");
 	
 	
-	$wpdb->query("CREATE TABLE IF NOT EXISTS `v_field_options` (
+	$wpdb->query("
+
+CREATE TABLE IF NOT EXISTS `".$wpdb->prefix."v_field_options` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `fieldtype` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `translit` varchar(100) NOT NULL,
   `options` text NOT NULL,
+  `isearch` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `id_2` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;");
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;");
 	
-	$wpdb->query("CREATE TABLE IF NOT EXISTS `v_field_types` (
+	$wpdb->query("CREATE TABLE IF NOT EXISTS `".$wpdb->prefix."v_field_types` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=6 ;");
-	$wpdb->query("INSERT INTO `v_field_types` (`id`, `name`) VALUES
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=6;");
+	$wpdb->query("INSERT INTO `".$wpdb->prefix."v_field_types` (`id`, `name`) VALUES
 (1, 'Digit'),
 (2, 'Text'),
 (3, 'String'),
 (4, 'Bool'),
 (5, 'Select');");
 
-$wpdb->query("CREATE TABLE IF NOT EXISTS `v_snippets` (
+$wpdb->query("CREATE TABLE IF NOT EXISTS `".$wpdb->prefix."v_snippets` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(20) NOT NULL,
   `data` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;");
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;");
+
+//Если существует файл с опциями то поля загружаем из него при активации плагина
+if(is_file(__DIR__ . "/field_options.ini"))
+{
+	$fh = fopen(__DIR__ . "/field_options.ini", "r") or die("File ($file) does not exist!");
+	$options = fread($fh, filesize(__DIR__ . "/field_options.ini"));
+	include(__DIR__."/v-ajax.php");
+	SaveOptions($options); 
+	fclose($fh);
+}
+	//$options = "hr=true&field_post_connect=&fieldname=price&select=Digit&default=20&step=10&min=0&max=9000000&search=1&isearch=1&hr=true&fieldname=description&select=Text&max_length=1000&default=&html_editor=1&search=1";
 
 
 }
@@ -262,6 +276,7 @@ function v_custom_fields_deactivate()
 	$wpdb->query("DROP TABLE  ".$wpdb->prefix."v_fields");
 	$wpdb->query("DROP TABLE  ".$wpdb->prefix."v_field_options");
 	$wpdb->query("DROP TABLE  ".$wpdb->prefix."v_field_types");
+	$wpdb->query("DROP TABLE  ".$wpdb->prefix."v_snippets");
 	return 0;
 }
 
