@@ -1,8 +1,9 @@
 <?php
 include_once ($_SERVER ['DOCUMENT_ROOT'] . '/wp-content/plugins/v-custom-fields/v-functions.php');
-//////////////////////////////////////////
-//Это тип действия...например вывести настройки типа поля...сохранить поля и.т.д
-////////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////
+// Р­С‚Рѕ С‚РёРї РґРµР№СЃС‚РІРёСЏ...РЅР°РїСЂРёРјРµСЂ РІС‹РІРµСЃС‚Рё РЅР°СЃС‚СЂРѕР№РєРё С‚РёРїР° РїРѕР»СЏ...СЃРѕС…СЂР°РЅРёС‚СЊ РїРѕР»СЏ
+// Рё.С‚.Рґ
+// //////////////////////////////////////////////////////////////////////////////
 $operation = $_POST ['operation'];
 
 switch ($operation) {
@@ -13,7 +14,7 @@ switch ($operation) {
 		NewSnippet ();
 		break;
 	case "save_snippets" :
-		SaveSnippets ($_POST[data]);
+		SaveSnippets ( $_POST [data] );
 		break;
 	case "save_fields" :
 		SaveOptions ( $_POST ['data'] );
@@ -22,64 +23,68 @@ switch ($operation) {
 		ChangeType ( $_POST ['data'] );
 		break;
 	case "update_field" :
-		UpdateField( $_POST['fieldtype'],$_POST['fieldid'], $_POST['data'], $_POST['params'] );
+		UpdateField ( $_POST ['fieldtype'], $_POST ['fieldid'], $_POST ['data'], $_POST ['params'] );
 		break;
 	default :
 		echo "ERROR";
 		break;
 }
 
-//Функция для вывода настроек типа поля...Она создает объект определенного класса по его имени а тот класс уже
-//непосредственно выводит всё используя свой OutField()
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РІС‹РІРѕРґР° РЅР°СЃС‚СЂРѕРµРє С‚РёРїР° РїРѕР»СЏ...РћРЅР° СЃРѕР·РґР°РµС‚ РѕР±СЉРµРєС‚ РѕРїСЂРµРґРµР»РµРЅРЅРѕРіРѕ
+// РєР»Р°СЃСЃР° РїРѕ РµРіРѕ РёРјРµРЅРё Р° С‚РѕС‚ РєР»Р°СЃСЃ СѓР¶Рµ
+// РЅРµРїРѕСЃСЂРµРґСЃС‚РІРµРЅРЅРѕ РІС‹РІРѕРґРёС‚ РІСЃС‘ РёСЃРїРѕР»СЊР·СѓСЏ СЃРІРѕР№ OutField()
 function NewOptions($classname) {
-	//Creating new object from string
+	// Creating new object from string
 	$current_class = new ReflectionClass ( $classname );
 	$current_object = $current_class->newInstance ();
-	//Объект выводит свои настройки типа поля в HTML
+	// РћР±СЉРµРєС‚ РІС‹РІРѕРґРёС‚ СЃРІРѕРё РЅР°СЃС‚СЂРѕР№РєРё С‚РёРїР° РїРѕР»СЏ РІ HTML
 	echo $current_object->NewOptions ();
 	unset ( $current_object );
 }
 
-//Функция сохранения полей в базе данных. Принцип- удаляем все имеющиеся поля и заново сохраняем только что принятые
+// Р¤СѓРЅРєС†РёСЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РїРѕР»РµР№ РІ Р±Р°Р·Рµ РґР°РЅРЅС‹С…. РџСЂРёРЅС†РёРї- СѓРґР°Р»СЏРµРј РІСЃРµ РёРјРµСЋС‰РёРµСЃСЏ РїРѕР»СЏ Рё
+// Р·Р°РЅРѕРІРѕ СЃРѕС…СЂР°РЅСЏРµРј С‚РѕР»СЊРєРѕ С‡С‚Рѕ РїСЂРёРЅСЏС‚С‹Рµ
 function SaveOptions($data) {
-	global $db,$wpdb;
+	global $db, $wpdb;
 	$err_status = 1;
-	//разбиваем всю строку на массивы....каждый элемент это Поле
+	// СЂР°Р·Р±РёРІР°РµРј РІСЃСЋ СЃС‚СЂРѕРєСѓ РЅР° РјР°СЃСЃРёРІС‹....РєР°Р¶РґС‹Р№ СЌР»РµРјРµРЅС‚ СЌС‚Рѕ РџРѕР»Рµ
 	$fields = explode ( "hr=true", $data );
-	//очищаем массив от пустых элементов
+	// РѕС‡РёС‰Р°РµРј РјР°СЃСЃРёРІ РѕС‚ РїСѓСЃС‚С‹С… СЌР»РµРјРµРЅС‚РѕРІ
 	$fields = clear_array_empty ( $fields );
-	mysql_query ( "DELETE FROM  ".$wpdb->prefix."v_field_options", $db );
-	mysql_query ( "ALTER_TABLE  ".$wpdb->prefix."v_field_options AUTO_INCREMENT = 0", $db );
+	mysql_query ( "DELETE FROM  " . $wpdb->prefix . "v_field_options", $db );
+	mysql_query ( "ALTER_TABLE  " . $wpdb->prefix . "v_field_options AUTO_INCREMENT = 0", $db );
 	foreach ( $fields as $row ) {
-		//разбиваем каждое поле на элементы
+		// СЂР°Р·Р±РёРІР°РµРј РєР°Р¶РґРѕРµ РїРѕР»Рµ РЅР° СЌР»РµРјРµРЅС‚С‹
 		$types = explode ( "&", $row );
-		//очищаем мусор из элементов
+		// РѕС‡РёС‰Р°РµРј РјСѓСЃРѕСЂ РёР· СЌР»РµРјРµРЅС‚РѕРІ
 		$types = clear_array_empty ( $types );
 		$final_field = array ();
 		foreach ( $types as $row2 ) {
 			$elems = explode ( "=", $row2 );
-			//$elems = сlear_array_empty($elems);
+			// $elems = СЃlear_array_empty($elems);
 			$final_field [$elems [0]] = urldecode ( $elems [1] );
 		
 		}
-		//Создаем объект переданного типа...тот что в ['select']
-		//и вызываем метод сохранения в базу, передавая ему в качестве ассоциативный массив
+		// РЎРѕР·РґР°РµРј РѕР±СЉРµРєС‚ РїРµСЂРµРґР°РЅРЅРѕРіРѕ С‚РёРїР°...С‚РѕС‚ С‡С‚Рѕ РІ ['select']
+		// Рё РІС‹Р·С‹РІР°РµРј РјРµС‚РѕРґ СЃРѕС…СЂР°РЅРµРЅРёСЏ РІ Р±Р°Р·Сѓ, РїРµСЂРµРґР°РІР°СЏ РµРјСѓ РІ РєР°С‡РµСЃС‚РІРµ
+		// Р°СЃСЃРѕС†РёР°С‚РёРІРЅС‹Р№ РјР°СЃСЃРёРІ
 		if (! strlen ( $final_field ['select'] ))
 			continue;
 		$current_class = new ReflectionClass ( $final_field ['select'] );
 		$current_object = $current_class->newInstance ();
-		//Если валидатор сработал то пользователю выдастся ошибка		
-
+		// Р•СЃР»Рё РІР°Р»РёРґР°С‚РѕСЂ СЃСЂР°Р±РѕС‚Р°Р» С‚Рѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ РІС‹РґР°СЃС‚СЃСЏ РѕС€РёР±РєР°
+		
 		$err_status = $err_status + $current_object->SaveOptions ( $final_field );
 		
-		//удаляем только что созданный объект, т.к. он нам ни к чему
+		// СѓРґР°Р»СЏРµРј С‚РѕР»СЊРєРѕ С‡С‚Рѕ СЃРѕР·РґР°РЅРЅС‹Р№ РѕР±СЉРµРєС‚, С‚.Рє. РѕРЅ РЅР°Рј РЅРё Рє С‡РµРјСѓ
 		unset ( $current_object );
 	}
-	//echo $err_status;
+	// echo $err_status;
 	if ($err_status == 1)
 		echo "SAVED";
 }
-//Функция которая создает объект класса и передает управление ему.Тот в свою очередь выводит поля опций.
+// Р¤СѓРЅРєС†РёСЏ РєРѕС‚РѕСЂР°СЏ СЃРѕР·РґР°РµС‚ РѕР±СЉРµРєС‚ РєР»Р°СЃСЃР° Рё РїРµСЂРµРґР°РµС‚ СѓРїСЂР°РІР»РµРЅРёРµ РµРјСѓ.РўРѕС‚ РІ СЃРІРѕСЋ
+// РѕС‡РµСЂРµРґСЊ РІС‹РІРѕРґРёС‚ РїРѕР»СЏ РѕРїС†РёР№.
 function ChangeType($fieldtype) {
 	if (! strlen ( $fieldtype ))
 		return 0;
@@ -91,21 +96,19 @@ function ChangeType($fieldtype) {
 }
 //
 
-function UpdateField($fieldtype = NULL, $fieldid = NULL, $data = NULL,$params = NULL)
-{	
-	if(!$fieldtype || !$fieldid)
+function UpdateField($fieldtype = NULL, $fieldid = NULL, $data = NULL, $params = NULL) {
+	if (! $fieldtype || ! $fieldid)
 		return;
-	if(!ctype_digit($fieldid))
+	if (! ctype_digit ( $fieldid ))
 		return;
 	$current_class = new ReflectionClass ( $fieldtype );
 	$current_object = $current_class->newInstance ();
-	$current_object->UpdateField($fieldid,$data,$params);
-	unset($current_object);
-	
+	$current_object->UpdateField ( $fieldid, $data, $params );
+	unset ( $current_object );
+
 }
-///
-function NewSnippet()
-{
+// /
+function NewSnippet() {
 	$result = "<div class=\"section\">
 				<h3>
 				     <span class=\"container\">
@@ -124,45 +127,40 @@ function NewSnippet()
 	echo $result;
 }
 
-
-
-function SaveSnippets($data)
-{
+function SaveSnippets($data) {
 	
-	global $db,$wpdb;
+	global $db, $wpdb;
 	$err_status = 1;
-	//разбиваем всю строку на массивы....каждый элемент это Поле
+	// СЂР°Р·Р±РёРІР°РµРј РІСЃСЋ СЃС‚СЂРѕРєСѓ РЅР° РјР°СЃСЃРёРІС‹....РєР°Р¶РґС‹Р№ СЌР»РµРјРµРЅС‚ СЌС‚Рѕ РџРѕР»Рµ
 	$fields = explode ( "hr=true", $data );
-	//очищаем массив от пустых элементов
+	// РѕС‡РёС‰Р°РµРј РјР°СЃСЃРёРІ РѕС‚ РїСѓСЃС‚С‹С… СЌР»РµРјРµРЅС‚РѕРІ
 	$fields = clear_array_empty ( $fields );
-	mysql_query ( "DELETE FROM  ".$wpdb->prefix."v_snippets", $db );
-	mysql_query ( "ALTER_TABLE  ".$wpdb->prefix."v_snippets AUTO_INCREMENT = 0", $db );
+	mysql_query ( "DELETE FROM  " . $wpdb->prefix . "v_snippets", $db );
+	mysql_query ( "ALTER_TABLE  " . $wpdb->prefix . "v_snippets AUTO_INCREMENT = 0", $db );
 	foreach ( $fields as $row ) {
-		//разбиваем каждое поле на элементы
+		// СЂР°Р·Р±РёРІР°РµРј РєР°Р¶РґРѕРµ РїРѕР»Рµ РЅР° СЌР»РµРјРµРЅС‚С‹
 		$types = explode ( "&", $row );
-		//очищаем мусор из элементов
+		// РѕС‡РёС‰Р°РµРј РјСѓСЃРѕСЂ РёР· СЌР»РµРјРµРЅС‚РѕРІ
 		$types = clear_array_empty ( $types );
 		$final_field = array ();
 		foreach ( $types as $row2 ) {
 			$elems = explode ( "=", $row2 );
-			//$elems = сlear_array_empty($elems);
+			// $elems = СЃlear_array_empty($elems);
 			$final_field [$elems [0]] = urldecode ( $elems [1] );
 		
 		}
-		$str = iconv ( "utf-8", "windows-1251", $final_field['fieldname'] );
-		if (! preg_match ( "/^[0-9a-zA-ZА-я\-_ \s]+$/", $str )) {
-			echo "<strong>NOT VALID STRING \"" . $final_field['fieldname'] . "\". ONLY DIGITS, SPACES AND UNDERLINES AVAILIBLE</strong></br>";
+		$str = iconv ( "utf-8", "windows-1251", $final_field ['fieldname'] );
+		if (! preg_match ( "/^[0-9a-zA-ZРђ-СЏ\-_ \s]+$/", $str )) {
+			echo "<strong>NOT VALID STRING \"" . $final_field ['fieldname'] . "\". ONLY DIGITS, SPACES AND UNDERLINES AVAILIBLE</strong></br>";
 			$err_status ++;
 			continue;
 		}
-		$final_field['fieldname'] = translit($final_field['fieldname']);
-	 	mysql_query("INSERT INTO  ".$wpdb->prefix."v_snippets (name,data) VALUES('" . $final_field['fieldname'] . "','".$final_field['value']."')",$db);
+		$final_field ['fieldname'] = translit ( $final_field ['fieldname'] );
+		mysql_query ( "INSERT INTO  " . $wpdb->prefix . "v_snippets (name,data) VALUES('" . $final_field ['fieldname'] . "','" . $final_field ['value'] . "')", $db );
 	}
-	//echo $err_status;
-    if ($err_status == 1)
-		echo "SAVED";		
+	// echo $err_status;
+	if ($err_status == 1)
+		echo "SAVED";
 }
-
-
 
 ?>

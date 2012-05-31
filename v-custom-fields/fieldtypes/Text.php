@@ -3,21 +3,19 @@ include ($_SERVER ['DOCUMENT_ROOT'] . '/wp-content/plugins/v-custom-fields/v-abs
 
 class Text extends FieldType {
 	
-	/////////////////
+	// ///////////////
 	private $maxlength = 1000;
 	private $default = "";
-	/////////////////
+	// ///////////////
 	
-
-
 	function get_maxlength() {
 		return $this->maxlength;
 	}
 	function get_default() {
 		return $this->default;
 	}
-	/////////////////
-
+	// ///////////////
+	
 	function ValidateOptions($array) {
 		$err_status = 0;
 		if (strlen ( $str ) > 20) {
@@ -25,7 +23,7 @@ class Text extends FieldType {
 			$err_status ++;
 		}
 		$str = iconv ( "utf-8", "windows-1251", $array ['fieldname'] );
-		if (! preg_match ( "/^[0-9a-zA-Z¿-ˇ\-_ \s]+$/", $str )) {
+		if (! preg_match ( "/^[0-9a-zA-Z–ê-—è\-_ \s]+$/", $str )) {
 			echo "<strong>NOT VALID STRING \"" . $array ['fieldname'] . "\". ONLY DIGITS, SPACES AND UNDERLINES AVAILIBLE</strong></br>";
 			$err_status ++;
 		}
@@ -38,23 +36,20 @@ class Text extends FieldType {
 	function ValidateField() {
 		return 0;
 	}
-	/////////////////////////////
-	function ValidatePostField($array = NULL,$data = NULL)
-	{
-		if(!$array)
+	// ///////////////////////////
+	function ValidatePostField($array = NULL, $data = NULL) {
+		if (! $array)
 			return "<div class=\"error\"><p>This or that went wrong</p></div>";
-		$options = unserialize($array['options']);
-		if(!strlen(trim($data)))
-		{
+		$options = unserialize ( $array ['options'] );
+		if (! strlen ( trim ( $data ) )) {
 			return false;
 		}
-		if(strlen($data) > $options['max_length'])
-		{
-			return "<div class=\"error\"><p>\"".$array['name']."\" is longer than \"".$options['max_length']."\" symbols.</p></div>";
+		if (strlen ( $data ) > $options ['max_length']) {
+			return "<div class=\"error\"><p>\"" . $array ['name'] . "\" is longer than \"" . $options ['max_length'] . "\" symbols.</p></div>";
 		}
-		return true;		
+		return true;
 	}
-	//////////////////////
+	// ////////////////////
 	function NewOptions() {
 		$str = "<div class=\"section\">
 				$this->head
@@ -69,33 +64,32 @@ class Text extends FieldType {
 			</div>";
 		return $str;
 	}
-
+	
 	function SaveOptions($array) {
 		$err_status = $this->ValidateOptions ( $array );
 		if ($err_status)
 			return $err_status;
 		else {
-			global $db,$wpdb;
+			global $db, $wpdb;
 			$fieldtype = $array ['select'];
-			$result = mysql_query ( "SELECT id FROM  ".$wpdb->prefix."v_field_types WHERE name='$fieldtype'", $db );
+			$result = mysql_query ( "SELECT id FROM  " . $wpdb->prefix . "v_field_types WHERE name='$fieldtype'", $db );
 			$fieldid = mysql_result ( $result, 0 );
 			$name = $array ['fieldname'];
 			$translit = translit ( $name );
-			$result2 = mysql_query ( "SELECT name FROM  ".$wpdb->prefix."v_field_options WHERE name='$name'", $db );
+			$result2 = mysql_query ( "SELECT name FROM  " . $wpdb->prefix . "v_field_options WHERE name='$name'", $db );
 			if (strlen ( mysql_result ( $result2, 0 ) ))
 				return 0;
 			$options = serialize ( $array );
-			$isearch = $array['isearch'];
-			if(strlen($isearch))
+			$isearch = $array ['isearch'];
+			if (strlen ( $isearch ))
 				$isearch = 1;
 			else
-				$isearch = 0;	
-			mysql_query ( "INSERT INTO  ".$wpdb->prefix."v_field_options (fieldtype,name,translit,options,isearch) VALUES($fieldid,'$name','$translit','$options',$isearch)" );
+				$isearch = 0;
+			mysql_query ( "INSERT INTO  " . $wpdb->prefix . "v_field_options (fieldtype,name,translit,options,isearch) VALUES($fieldid,'$name','$translit','$options',$isearch)" );
 			return 0;
 		}
 	}
 	
-
 	function LoadOptions($data) {
 		$options = $data ['options'];
 		if (! strlen ( $options ))
@@ -105,20 +99,18 @@ class Text extends FieldType {
 		$name = $array ['fieldname'];
 		$max_length = $array ['max_length'];
 		$default = $array ['default'];
-		$search = $array['search'];
+		$search = $array ['search'];
 		
-		if($search == 1)
-		{
+		if ($search == 1) {
 			$search_checked = "checked=\"true\"";
-		}
-		else
+		} else
 			$search_checked = "";
 		$selection = make_select_list ( $select );
-		if($array['html_editor'] == 1)
+		if ($array ['html_editor'] == 1)
 			$wysiwyg = "<input type=\"checkbox\" name=\"html_editor\"  class=\"html_editor\" value=\"1\" checked=\"true\" />";
-		else 	
+		else
 			$wysiwyg = "<input type=\"checkbox\" name=\"html_editor\"  class=\"html_editor\" value=\"1\" />";
-			$str = "<div class=\"section\">
+		$str = "<div class=\"section\">
 				<h3>
 				     <span class=\"container\">
 				     	<input type=\"hidden\" name=\"hr\" value=\"true\">
@@ -140,7 +132,7 @@ class Text extends FieldType {
 			</div>";
 		return $str;
 	}
-
+	
 	function OutField($array, $post_id = 0) {
 		$translit = $array ['translit'];
 		$array = unserialize ( $array ['options'] );
@@ -149,15 +141,15 @@ class Text extends FieldType {
 		$name = $array ['fieldname'];
 		$value = $array ['default'];
 		if ($post_id) {
-			global $db,$wpdb;
-			$query_result = mysql_query ( "SELECT data FROM  ".$wpdb->prefix."v_fields WHERE post_id=$post_id AND translit='$translit'", $db );
+			global $db, $wpdb;
+			$query_result = mysql_query ( "SELECT data FROM  " . $wpdb->prefix . "v_fields WHERE post_id=$post_id AND translit='$translit'", $db );
 			if ($query_result)
 				$value = mysql_result ( $query_result, 0 );
 			if (! $value)
 				$value = "";
 		}
-		if($array['html_editor'] == '1')
-		$result = $result . "<script>$(document).ready(function()
+		if ($array ['html_editor'] == '1')
+			$result = $result . "<script>$(document).ready(function()
 		{
 		tinyMCE.init({
 		mode : \"textareas\",
@@ -172,7 +164,7 @@ class Text extends FieldType {
 		
 		return $result;
 	}
-	///////////////////////////////////////////////////////////////////
+	// /////////////////////////////////////////////////////////////////
 	function ChangeType() {
 		$str = "<p>Max Length:<br/> <input type=\"text\" name=\"max_length\" class=\"default\" value=\"" . $this->get_maxlength () . "\"/></p>
 		<p>Default:<br/> <textarea name=\"default\" cols=80 rows=10>" . $this->get_default () . "</textarea></p>
@@ -182,102 +174,89 @@ class Text extends FieldType {
 		<p><b>text search</b> <input type=\"checkbox\" name=\"search\" checked=\"checked\" value=\"1\" /></p>";
 		return $str;
 	}
-	////////////////////////////////////////////////////////////////////
-	function Out($array = NULL,$params = NULL)
-	{
-		if(!$array)
+	// //////////////////////////////////////////////////////////////////
+	function Out($array = NULL, $params = NULL) {
+		if (! $array)
 			return;
 		$result = "";
-		$id = $array['id'];
-		$data = $array['data'];
-		$options = unserialize($array['options']);
-		$max_length = $options['max_length'];
+		$id = $array ['id'];
+		$data = $array ['data'];
+		$options = unserialize ( $array ['options'] );
+		$max_length = $options ['max_length'];
 		$formatted = "";
-		//if($options['view'] == '0' || $options['view'] == '3')
-		//	$formatted = $array['data'];
-		if($params['view'] == 'list')
-		{
-			$content = explode("\n",$array['data']);
-			foreach($content as $row)
-			{
+		// if($options['view'] == '0' || $options['view'] == '3')
+		// $formatted = $array['data'];
+		if ($params ['view'] == 'list') {
+			$content = explode ( "\n", $array ['data'] );
+			foreach ( $content as $row ) {
 				$formatted .= "<ul>";
-				$formatted .= "<li>".$row."</li>";
+				$formatted .= "<li>" . $row . "</li>";
 				$formatted .= "</ul>";
 			}
 		}
-		if($params['view'] == 'br')
-		{
-			$content = explode("\n",$array['data']);
-			foreach($content as $row)
-			{
-				$formatted .= $row."</br>";
-			}			
+		if ($params ['view'] == 'br') {
+			$content = explode ( "\n", $array ['data'] );
+			foreach ( $content as $row ) {
+				$formatted .= $row . "</br>";
+			}
 		}
-		if($this->user_level != 10)
-		{
-			$result .= "<span>".$formatted."</span></br>";
+		if ($this->user_level != 10) {
+			$result .= "<span>" . $formatted . "</span></br>";
 			$result .= "</br>";
 			return $result;
 		}
-		$result .= "<span id=\"$id\" class=\"text\">".$formatted."</span>";
+		$result .= "<span id=\"$id\" class=\"text\">" . $formatted . "</span>";
 		$result .= "<div style=\"display:none;\" class=\"$id\" title=\"Edit value\">
-		<textarea cols=10 rows=5 maxlength=$max_length>".$array['data']."</textarea>
-		<input type=\"hidden\" class=\"backup_value\" value=\"".$array['data']."\" />
+		<textarea cols=10 rows=5 maxlength=$max_length>" . $array ['data'] . "</textarea>
+		<input type=\"hidden\" class=\"backup_value\" value=\"" . $array ['data'] . "\" />
 		</div>";
 		$result .= "</br>";
 		return $result;
 	}
-	///////////////////////////////////////////////////////////////////////
-	function UpdateField($fieldid,$data,$params = NULL)
-	{		
+	// /////////////////////////////////////////////////////////////////////
+	function UpdateField($fieldid, $data, $params = NULL) {
 		if ($this->user_level != 10)
 			return;
 		global $wpdb;
-		$options_result = $wpdb->get_row("SELECT options FROM  ".$wpdb->prefix."v_field_options WHERE translit = (SELECT translit FROM  ".$wpdb->prefix."v_fields WHERE id = $fieldid)");
-		$options = unserialize($options_result->options);
-		if(strlen($data) > $options['max_length'] )
-		{
-			$result = $wpdb->get_results("SELECT data FROM  ".$wpdb->prefix."v_fields WHERE id = $fieldid LIMIT 1",ARRAY_A);
-			echo $result[0]['data'];
+		$options_result = $wpdb->get_row ( "SELECT options FROM  " . $wpdb->prefix . "v_field_options WHERE translit = (SELECT translit FROM  " . $wpdb->prefix . "v_fields WHERE id = $fieldid)" );
+		$options = unserialize ( $options_result->options );
+		if (strlen ( $data ) > $options ['max_length']) {
+			$result = $wpdb->get_results ( "SELECT data FROM  " . $wpdb->prefix . "v_fields WHERE id = $fieldid LIMIT 1", ARRAY_A );
+			echo $result [0] ['data'];
 			return;
 		}
-		$wpdb->query("UPDATE v_fields SET data = '$data' WHERE id = $fieldid");
-		//Œ·ÌÓ‚ÎˇÂÏ ÏÂÚ‡‰‡ÌÌ˚Â ‚Ó‰ÔÂÒÒ‡
-		$result = $wpdb->get_results("SELECT translit,post_id FROM  ".$wpdb->prefix."v_fields WHERE id = $fieldid LIMIT 1",ARRAY_A);
-		$fieldname = $result[0]['translit'];
-		$post_id = $result[0]['post_id'];
-		if(ctype_digit($post_id) && strlen($fieldname))
-			update_post_meta($post_id,$fieldname,$data);
-		//
-		///////
-		$max_length = $options['max_length'];
+		$wpdb->query ( "UPDATE v_fields SET data = '$data' WHERE id = $fieldid" );
+		// –û–±–Ω–æ–≤–ª—è–µ–º –º–µ—Ç–∞–¥–∞–Ω–Ω—ã–µ –≤–æ—Ä–¥–ø—Ä–µ—Å—Å–∞
+		$result = $wpdb->get_results ( "SELECT translit,post_id FROM  " . $wpdb->prefix . "v_fields WHERE id = $fieldid LIMIT 1", ARRAY_A );
+		$fieldname = $result [0] ['translit'];
+		$post_id = $result [0] ['post_id'];
+		if (ctype_digit ( $post_id ) && strlen ( $fieldname ))
+			update_post_meta ( $post_id, $fieldname, $data );
+			//
+			// /////
+		$max_length = $options ['max_length'];
 		$formatted = "";
-		if($options['view'] == '0' || $options['view'] == '3')
+		if ($options ['view'] == '0' || $options ['view'] == '3')
 			$formatted = $data;
-		if($options['view'] == '1')
-		{
-			$content = explode("\n",$data);
-			foreach($content as $row)
-			{
+		if ($options ['view'] == '1') {
+			$content = explode ( "\n", $data );
+			foreach ( $content as $row ) {
 				$formatted .= "<ul>";
-				$formatted .= "<li>".$row."</li>";
+				$formatted .= "<li>" . $row . "</li>";
 				$formatted .= "</ul>";
 			}
 		}
-		if($options['view'] == '2')
-		{
-			$content = explode("\n",$data);
-			foreach($content as $row)
-			{
-				$formatted .= $row."</br>";
-			}			
+		if ($options ['view'] == '2') {
+			$content = explode ( "\n", $data );
+			foreach ( $content as $row ) {
+				$formatted .= $row . "</br>";
+			}
 		}
-		//////
+		// ////
 		echo $formatted;
 	}
-	///////////////////////////////////////////////////////////////////////////
-	function Mysql_Where($pieces = NULL,$param = NULL,$value = NULL)
-	{
+	// /////////////////////////////////////////////////////////////////////////
+	function Mysql_Where($pieces = NULL, $param = NULL, $value = NULL) {
 		return $pieces;
 	}
 }

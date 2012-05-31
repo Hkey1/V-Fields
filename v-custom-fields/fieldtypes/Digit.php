@@ -2,15 +2,13 @@
 include ($_SERVER ['DOCUMENT_ROOT'] . '/wp-content/plugins/v-custom-fields/v-abstract-fieldtype.php');
 
 class Digit extends FieldType {
-	/////////////////
+	// ///////////////
 	private $default = "0";
 	private $min = "0";
 	private $max = "1000";
 	private $step = "10";
-	/////////////////
+	// ///////////////
 	
-
-
 	function get_default() {
 		return $this->default;
 	}
@@ -23,8 +21,8 @@ class Digit extends FieldType {
 	function get_step() {
 		return $this->step;
 	}
-	/////////////////
-
+	// ///////////////
+	
 	function ValidateOptions($array) {
 		$err_status = 0;
 		$str = iconv ( "utf-8", "windows-1251", $array ['fieldname'] );
@@ -32,7 +30,7 @@ class Digit extends FieldType {
 			echo "<strong>NAME'S LENGTH IS MORE THAN 20 SYMBOLS</strong></br>";
 			$err_status ++;
 		}
-		if (! preg_match ( "/^[0-9a-zA-ZА-я\-_ \s]+$/", $str )) {
+		if (! preg_match ( "/^[0-9a-zA-ZРђ-СЏ\-_ \s]+$/", $str )) {
 			echo "<strong>NOT VALID STRING \"" . $array ['fieldname'] . "\". ONLY DIGITS, SPACES AND UNDERLINES AVAILIBLE</strong></br>";
 			$err_status ++;
 		}
@@ -53,34 +51,30 @@ class Digit extends FieldType {
 	function ValidateField() {
 		return 0;
 	}
-	/////////////////////////////
-	function ValidatePostField($array = NULL,$data = NULL)
-	{
-		if(!$array)
+	// ///////////////////////////
+	function ValidatePostField($array = NULL, $data = NULL) {
+		if (! $array)
 			return "<div class=\"error\"><p>This or that went wrong</p></div>";
-		$options = unserialize($array['options']);
-		if(!strlen(trim($data)))
+		$options = unserialize ( $array ['options'] );
+		if (! strlen ( trim ( $data ) ))
 			return false;
-		if(!is_numeric($data))
-		{
-			$data = $options['default'];
-			return "<div class=\"error\"><p>\"".$array['name']."\" is not digit. Will be used default value \"".$options['default']."\".</p></div>";			
+		if (! is_numeric ( $data )) {
+			$data = $options ['default'];
+			return "<div class=\"error\"><p>\"" . $array ['name'] . "\" is not digit. Will be used default value \"" . $options ['default'] . "\".</p></div>";
 		}
-
-		if($data > $options['max'])
-		{
-			$data = $options['default'];
-			return "<div class=\"error\"><p>\"".$array['name']."\" is more than max. Will be used default value \"".$options['default']."\".</p></div>";			
+		
+		if ($data > $options ['max']) {
+			$data = $options ['default'];
+			return "<div class=\"error\"><p>\"" . $array ['name'] . "\" is more than max. Will be used default value \"" . $options ['default'] . "\".</p></div>";
 		}
-
-		if($data < $options['min'])
-		{
-			$data = $options['default'];
-			return "<div class=\"error\"><p>\"".$array['name']."\" is less than min. Will be used default value \"".$options['default']."\".</p></div>";			
+		
+		if ($data < $options ['min']) {
+			$data = $options ['default'];
+			return "<div class=\"error\"><p>\"" . $array ['name'] . "\" is less than min. Will be used default value \"" . $options ['default'] . "\".</p></div>";
 		}
 		return true;
 	}
-	//////////////////////
+	// ////////////////////
 	function NewOptions() {
 		$str = "<div class=\"section\">
 				$this->head
@@ -95,34 +89,33 @@ class Digit extends FieldType {
 			</div>";
 		return $str;
 	}
-
+	
 	function SaveOptions($array) {
 		$err_status = $this->ValidateOptions ( $array );
 		if ($err_status)
 			return 1;
 		else {
-			global $db,$wpdb;
+			global $db, $wpdb;
 			$fieldtype = $array ['select'];
-			$result = mysql_query ( "SELECT id FROM  ".$wpdb->prefix."v_field_types WHERE name='$fieldtype'", $db );
+			$result = mysql_query ( "SELECT id FROM  " . $wpdb->prefix . "v_field_types WHERE name='$fieldtype'", $db );
 			$fieldid = mysql_result ( $result, 0 );
 			$name = $array ['fieldname'];
 			$translit = translit ( $name );
-			$result2 = mysql_query ( "SELECT name FROM  ".$wpdb->prefix."v_field_options WHERE name='$name'", $db );
+			$result2 = mysql_query ( "SELECT name FROM  " . $wpdb->prefix . "v_field_options WHERE name='$name'", $db );
 			if (strlen ( mysql_result ( $result2, 0 ) ))
 				return 1;
-
+			
 			$options = serialize ( $array );
-			$isearch = $array['isearch'];
-			if(strlen($isearch))
+			$isearch = $array ['isearch'];
+			if (strlen ( $isearch ))
 				$isearch = 1;
 			else
-				$isearch = 0;	
-			mysql_query ( "INSERT INTO  ".$wpdb->prefix."v_field_options (fieldtype,name,translit,options,isearch) VALUES($fieldid,'$name','$translit','$options',$isearch)" );
+				$isearch = 0;
+			mysql_query ( "INSERT INTO  " . $wpdb->prefix . "v_field_options (fieldtype,name,translit,options,isearch) VALUES($fieldid,'$name','$translit','$options',$isearch)" );
 			return 0;
 		}
 	}
 	
-
 	function LoadOptions($data) {
 		$options = $data ['options'];
 		if (! strlen ( $options ))
@@ -135,19 +128,15 @@ class Digit extends FieldType {
 		$max = $array ['max'];
 		$step = $array ['step'];
 		$default = $array ['default'];
-		$search = $array['search'];
-		$isearch = $array['isearch'];
-		if($search == 1)
-		{
+		$search = $array ['search'];
+		$isearch = $array ['isearch'];
+		if ($search == 1) {
 			$search_checked = "checked=\"true\"";
-		}
-		else
+		} else
 			$search_checked = "";
-		if($isearch == 1)
-		{
+		if ($isearch == 1) {
 			$isearch_checked = "checked=\"true\"";
-		}
-		else
+		} else
 			$isearch_checked = "";
 		$selection = make_select_list ( $select );
 		
@@ -174,7 +163,7 @@ class Digit extends FieldType {
 			</div>";
 		return $str;
 	}
-
+	
 	function OutField($array, $post_id = 0) {
 		$translit = $array ['translit'];
 		$array = unserialize ( $array ['options'] );
@@ -187,15 +176,15 @@ class Digit extends FieldType {
 		$step = $array ['step'];
 		$name = $array ['fieldname'];
 		if ($post_id) {
-			global $db,$wpdb;
+			global $db, $wpdb;
 			$value = 0;
-			$query_result = mysql_query ( "SELECT data FROM  ".$wpdb->prefix."v_fields WHERE post_id=$post_id AND translit='$translit'", $db );
+			$query_result = mysql_query ( "SELECT data FROM  " . $wpdb->prefix . "v_fields WHERE post_id=$post_id AND translit='$translit'", $db );
 			if ($query_result)
 				$value = mysql_result ( $query_result, 0 );
-			if(strlen(trim($value)) == 0)
-				$value = $array['default'];
+			if (strlen ( trim ( $value ) ) == 0)
+				$value = $array ['default'];
 		}
-
+		
 		$result = "<script>
 						$(document).ready(function(){
 						$.spin.imageBasePath = '/wp-content/plugins/v-custom-fields/img/spin2/';
@@ -229,10 +218,10 @@ class Digit extends FieldType {
 					    });
   			         </script>";
 		$result = $result . "<label for=\"$translit\"><b>$name</b></label></br>";
-		$result = $result . "<input type=\"input\" id=\"$translit\" name=\"$translit\" value=\"$value\" /></br></br>";		
+		$result = $result . "<input type=\"input\" id=\"$translit\" name=\"$translit\" value=\"$value\" /></br></br>";
 		return $result;
 	}
-	///////////////////////////////////////////////////////////////////
+	// /////////////////////////////////////////////////////////////////
 	function ChangeType() {
 		$str = "<p>Default:<br/> <input type=\"text\" name=\"default\" class=\"default\" value=\"" . $this->get_default () . "\"/></p>
 				<p>Step:<br/> <input type=\"text\" name=\"step\" class=\"step\" value=\"" . $this->get_step () . "\"/></p>
@@ -244,260 +233,232 @@ class Digit extends FieldType {
 		
 		return $str;
 	}
-	////////////////////////////////////////////////////////////////////
-	function make_dec_div($params,$value)
-	{
+	// //////////////////////////////////////////////////////////////////
+	function make_dec_div($params, $value) {
 		$data = $value;
-		if($params['division'])
-			{
-				if(ctype_digit($params['dec']))
-				{
-					$del = 1;
-					if($params['dec'] == 1)
-						$del = 10;
-					if($params['dec'] == 2)
-						$del = 100;
-				    if($params['dec'] == 3)
-						$del = 1000;
-					if($params['dec'] == 4)
-						$del = 10000;
-					if($params['dec'] == 5)
-						$del = 100000;
-					$data = floor($data*$del)/$del;
-					$data = number_format($data,$params['dec'],"."," ");
-					if(ctype_digit($value))
-						$data = $value;
-				}
+		if ($params ['division']) {
+			if (ctype_digit ( $params ['dec'] )) {
+				$del = 1;
+				if ($params ['dec'] == 1)
+					$del = 10;
+				if ($params ['dec'] == 2)
+					$del = 100;
+				if ($params ['dec'] == 3)
+					$del = 1000;
+				if ($params ['dec'] == 4)
+					$del = 10000;
+				if ($params ['dec'] == 5)
+					$del = 100000;
+				$data = floor ( $data * $del ) / $del;
+				$data = number_format ( $data, $params ['dec'], ".", " " );
+				if (ctype_digit ( $value ))
+					$data = $value;
 			}
-			else 
-			{
-				if(ctype_digit($params['dec']))
-				{
-					$del = 1;
-					if($params['dec'] == 1)
-						$del = 10;
-					if($params['dec'] == 2)
-						$del = 100;
-				    if($params['dec'] == 3)
-						$del = 1000;
-					if($params['dec'] == 4)
-						$del = 10000;
-					if($params['dec'] == 5)
-						$del = 100000;
-					$data = floor($data*$del)/$del;			
-					$data = number_format($data,$params['dec'],".","");
-					if(ctype_digit($value))
-						$data = $value;
-				}
+		} else {
+			if (ctype_digit ( $params ['dec'] )) {
+				$del = 1;
+				if ($params ['dec'] == 1)
+					$del = 10;
+				if ($params ['dec'] == 2)
+					$del = 100;
+				if ($params ['dec'] == 3)
+					$del = 1000;
+				if ($params ['dec'] == 4)
+					$del = 10000;
+				if ($params ['dec'] == 5)
+					$del = 100000;
+				$data = floor ( $data * $del ) / $del;
+				$data = number_format ( $data, $params ['dec'], ".", "" );
+				if (ctype_digit ( $value ))
+					$data = $value;
 			}
-			//////Спряжения
-			//$declensions = explode("\n",$params['declensions']);
-			$declensions = $params['declensions'];
-			//Если у нас три формы заданы в админке
-			if(count($declensions) == 3)
-			{
-				//Если дробь то вторая форма
-				if(strpos($value,"."))
-				{
-					$data .= " ".$declensions[1];
-				}
-				else 
-				{
-					//Вытягиваем последние две цифры из числа
-					$last_digits = substr($value,strlen($value)-2);
-					//Вытягиваем последнюю цифрц числа
-					$last_digit = $value%10;
-					//При данном условии выводим в третей форме
-					if((intval($last_digits) >= 11 && intval($last_digits) <= 19) ||
-					(intval($last_digit) >=5 && intval($last_digit) <=9 ) || intval($last_digit) == 0)
-						$data .= " ".$declensions[2];
+		}
+		// ////РЎРїСЂСЏР¶РµРЅРёСЏ
+		// $declensions = explode("\n",$params['declensions']);
+		$declensions = $params ['declensions'];
+		// Р•СЃР»Рё Сѓ РЅР°СЃ С‚СЂРё С„РѕСЂРјС‹ Р·Р°РґР°РЅС‹ РІ Р°РґРјРёРЅРєРµ
+		if (count ( $declensions ) == 3) {
+			// Р•СЃР»Рё РґСЂРѕР±СЊ С‚Рѕ РІС‚РѕСЂР°СЏ С„РѕСЂРјР°
+			if (strpos ( $value, "." )) {
+				$data .= " " . $declensions [1];
+			} else {
+				// Р’С‹С‚СЏРіРёРІР°РµРј РїРѕСЃР»РµРґРЅРёРµ РґРІРµ С†РёС„СЂС‹ РёР· С‡РёСЃР»Р°
+				$last_digits = substr ( $value, strlen ( $value ) - 2 );
+				// Р’С‹С‚СЏРіРёРІР°РµРј РїРѕСЃР»РµРґРЅСЋСЋ С†РёС„СЂС† С‡РёСЃР»Р°
+				$last_digit = $value % 10;
+				// РџСЂРё РґР°РЅРЅРѕРј СѓСЃР»РѕРІРёРё РІС‹РІРѕРґРёРј РІ С‚СЂРµС‚РµР№ С„РѕСЂРјРµ
+				if ((intval ( $last_digits ) >= 11 && intval ( $last_digits ) <= 19) || (intval ( $last_digit ) >= 5 && intval ( $last_digit ) <= 9) || intval ( $last_digit ) == 0)
+					$data .= " " . $declensions [2];
+				else {
+					// Р•СЃР»Рё Р¶Рµ С‡РёСЃР»Рѕ = 1,РёР»Рё Р·Р°РєР°РЅС‡РёРІР°РµС‚СЃСЏ РЅР° 1(РЅРѕ РЅРµ РЅР° 11), С‚Рѕ
+					// РІС‹РІРѕРґРёРј РІ РїРµСЂРІРѕР№ С„РѕСЂРјРµ
+					// Р’Рѕ РІСЃРµС… РѕСЃС‚Р°Р»СЊРЅС‹С… СЃР»СѓС‡Р°СЏС… РІС‹РІРѕРґРёРј РІРѕ РІС‚РѕСЂРѕР№ С„РѕСЂРјРµ
+					if (intval ( $value ) == 1 || $last_digits % 10 == 1)
+						$data .= " " . $declensions [0];
 					else
-					{
-						//Если же число = 1,или заканчивается на 1(но не на 11), то выводим в первой форме
-						//Во всех остальных случаях выводим во второй форме
-						if(intval($value) == 1 || $last_digits%10 == 1 )
-							$data .= " ".$declensions[0];
-						else
-							$data .= " ".$declensions[1];
-					}
-				}	
+						$data .= " " . $declensions [1];
+				}
 			}
-			//Если две формы заданы в админке
-			elseif(count($declensions) == 2)
-			{
-				//Если число = 1, то первая форма, в противном случае всегда во второй
-				if(intval($value) == 1)
-				   $data .= "  ".$declensions[0];
-				else 
-				   $data .= "  ".$declensions[1];	
-			}
-			return $data;		
+		}		// Р•СЃР»Рё РґРІРµ С„РѕСЂРјС‹ Р·Р°РґР°РЅС‹ РІ Р°РґРјРёРЅРєРµ
+		elseif (count ( $declensions ) == 2) {
+			// Р•СЃР»Рё С‡РёСЃР»Рѕ = 1, С‚Рѕ РїРµСЂРІР°СЏ С„РѕСЂРјР°, РІ РїСЂРѕС‚РёРІРЅРѕРј СЃР»СѓС‡Р°Рµ РІСЃРµРіРґР° РІРѕ
+			// РІС‚РѕСЂРѕР№
+			if (intval ( $value ) == 1)
+				$data .= "  " . $declensions [0];
+			else
+				$data .= "  " . $declensions [1];
+		}
+		return $data;
 	}
-	////////////////////////////////////////////////////////////////////
-	function Out($array = NULL,$params = NULL)
-	{
-		if(!$array)
+	// //////////////////////////////////////////////////////////////////
+	function Out($array = NULL, $params = NULL) {
+		if (! $array)
 			return;
 		global $wpdb;
-		$id = $array['id'];
-		$data = $array['data'];
-		$options = unserialize($array['options']);
-		///Количество цифр дробной части
-		$data = $this->make_dec_div($params, $array['data']);
-		//////Конец спряжениям
+		$id = $array ['id'];
+		$data = $array ['data'];
+		$options = unserialize ( $array ['options'] );
+		// /РљРѕР»РёС‡РµСЃС‚РІРѕ С†РёС„СЂ РґСЂРѕР±РЅРѕР№ С‡Р°СЃС‚Рё
+		$data = $this->make_dec_div ( $params, $array ['data'] );
+		// ////РљРѕРЅРµС† СЃРїСЂСЏР¶РµРЅРёСЏРј
 		
 		$result = "";
 		$backup_params = "";
-		if($this->user_level != 10)
-		{
-			$result .= "<span>".$data."</span></br>";
+		if ($this->user_level != 10) {
+			$result .= "<span>" . $data . "</span></br>";
 			$result .= "</br>";
 			return $result;
 		}
 		/*
-		 * Добавляем скрытое поле backup_params. В нем хранится зашифрованное значение параметров передаваемых в функцию out, для того,
-		 * чтобы когда на лету изменяли значения на сайте, действовали изначальные параметры передаваемые в OUT() (разряд, спряжение, округление)
-		 * */
-		if($params != NULL)
-		{
-			$backup_params = "<input type=\"hidden\" class=\"backup_params\" name=\"backup_params\" value=\"".urlencode(serialize($params))."\"/>";
+		 * Р”РѕР±Р°РІР»СЏРµРј СЃРєСЂС‹С‚РѕРµ РїРѕР»Рµ backup_params. Р’ РЅРµРј С…СЂР°РЅРёС‚СЃСЏ Р·Р°С€РёС„СЂРѕРІР°РЅРЅРѕРµ
+		 * Р·РЅР°С‡РµРЅРёРµ РїР°СЂР°РјРµС‚СЂРѕРІ РїРµСЂРµРґР°РІР°РµРјС‹С… РІ С„СѓРЅРєС†РёСЋ out, РґР»СЏ С‚РѕРіРѕ, С‡С‚РѕР±С‹ РєРѕРіРґР°
+		 * РЅР° Р»РµС‚Сѓ РёР·РјРµРЅСЏР»Рё Р·РЅР°С‡РµРЅРёСЏ РЅР° СЃР°Р№С‚Рµ, РґРµР№СЃС‚РІРѕРІР°Р»Рё РёР·РЅР°С‡Р°Р»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹
+		 * РїРµСЂРµРґР°РІР°РµРјС‹Рµ РІ OUT() (СЂР°Р·СЂСЏРґ, СЃРїСЂСЏР¶РµРЅРёРµ, РѕРєСЂСѓРіР»РµРЅРёРµ)
+		 */
+		if ($params != NULL) {
+			$backup_params = "<input type=\"hidden\" class=\"backup_params\" name=\"backup_params\" value=\"" . urlencode ( serialize ( $params ) ) . "\"/>";
 		}
-		$edit_data = $array['data'];		
-		$result .= "<span id=\"$id\" class=\"digit ui-widget-content ui-widget-shadow  ui-corner-all\">".$data."</span>";
+		$edit_data = $array ['data'];
+		$result .= "<span id=\"$id\" class=\"digit ui-widget-content ui-widget-shadow  ui-corner-all\">" . $data . "</span>";
 		$result .= "<div style=\"display:none;\" class=\"$id\" title=\"Edit value\">
 		<input type=\"text\" class=\"edit_digit\" value=\"$edit_data\">
-		".$backup_params."
+		" . $backup_params . "
 		</div>";
 		$result .= "</br>";
 		return $result;
 	}
-	//////////////////////////////////////////////////////////////////////
-	function UpdateField($fieldid,$data,$params = NULL)
-	{
+	// ////////////////////////////////////////////////////////////////////
+	function UpdateField($fieldid, $data, $params = NULL) {
 		if ($this->user_level != 10)
 			return;
 		global $wpdb;
-		if (!is_numeric($data))
-		{
-			$result = $wpdb->get_results("SELECT data FROM  ".$wpdb->prefix."v_fields WHERE id = $fieldid LIMIT 1",ARRAY_A);
-			echo $result[0]['data'];
-			return;			
-		}
-		$options_result = $wpdb->get_row("SELECT options FROM  ".$wpdb->prefix."v_field_options WHERE translit = (SELECT translit FROM  ".$wpdb->prefix."v_fields WHERE id = $fieldid)");
-		$options = unserialize($options_result->options);
-		if($data > $options['max'] || $data < $options['min'])
-		{
-			$result = $wpdb->get_results("SELECT data FROM  ".$wpdb->prefix."v_fields WHERE id = $fieldid LIMIT 1",ARRAY_A);
-			echo $result[0]['data'];
+		if (! is_numeric ( $data )) {
+			$result = $wpdb->get_results ( "SELECT data FROM  " . $wpdb->prefix . "v_fields WHERE id = $fieldid LIMIT 1", ARRAY_A );
+			echo $result [0] ['data'];
 			return;
 		}
-		$wpdb->query("UPDATE  ".$wpdb->prefix."v_fields SET data = '$data' WHERE id = $fieldid");
-		//Обновляем метаданные вордпресса
-		$result = $wpdb->get_results("SELECT translit,post_id FROM  ".$wpdb->prefix."v_fields WHERE id = $fieldid LIMIT 1",ARRAY_A);
-		$fieldname = $result[0]['translit'];
-		$post_id = $result[0]['post_id'];
-		if(ctype_digit($post_id) && strlen($fieldname))
-			update_post_meta($post_id,$fieldname,$data);
-		//
-		if($params != NULL)
-			$params = unserialize(urldecode($params));
-		$data = $this->make_dec_div($params, $data);
+		$options_result = $wpdb->get_row ( "SELECT options FROM  " . $wpdb->prefix . "v_field_options WHERE translit = (SELECT translit FROM  " . $wpdb->prefix . "v_fields WHERE id = $fieldid)" );
+		$options = unserialize ( $options_result->options );
+		if ($data > $options ['max'] || $data < $options ['min']) {
+			$result = $wpdb->get_results ( "SELECT data FROM  " . $wpdb->prefix . "v_fields WHERE id = $fieldid LIMIT 1", ARRAY_A );
+			echo $result [0] ['data'];
+			return;
+		}
+		$wpdb->query ( "UPDATE  " . $wpdb->prefix . "v_fields SET data = '$data' WHERE id = $fieldid" );
+		// РћР±РЅРѕРІР»СЏРµРј РјРµС‚Р°РґР°РЅРЅС‹Рµ РІРѕСЂРґРїСЂРµСЃСЃР°
+		$result = $wpdb->get_results ( "SELECT translit,post_id FROM  " . $wpdb->prefix . "v_fields WHERE id = $fieldid LIMIT 1", ARRAY_A );
+		$fieldname = $result [0] ['translit'];
+		$post_id = $result [0] ['post_id'];
+		if (ctype_digit ( $post_id ) && strlen ( $fieldname ))
+			update_post_meta ( $post_id, $fieldname, $data );
+			//
+		if ($params != NULL)
+			$params = unserialize ( urldecode ( $params ) );
+		$data = $this->make_dec_div ( $params, $data );
 		echo $data;
 	}
-	//////////////////////////////////////////////////////////////////////	
-	function Mysql_Where($pieces = NULL,$param = NULL,$value = NULL)
-	{
+	// ////////////////////////////////////////////////////////////////////
+	function Mysql_Where($pieces = NULL, $param = NULL, $value = NULL) {
 		global $wpdb;
-		//$value = (int)$value;
-		if($pieces == NULL)
+		// $value = (int)$value;
+		if ($pieces == NULL)
 			return;
-			$field_param = array();
-			/*
-			 * Парсим $param...Он представлен в виде cf_xxx_xxx....Вытягиваем имя поля и условие поиска
-			 * Проверяем существует ли такое имя. Если существует то в зависимости от условия формируем WHERE
-			 * */	 
-			if(preg_match('/^cf_(.*)_(.*)/i', $param,$field_param))
-			{
-				$fieldname = strtolower($field_param[1]);
-				$result = $wpdb->get_results("SELECT * FROM  ".$wpdb->prefix."v_field_options WHERE name = '$fieldname'",OBJECT);
-				$condition = strtolower($field_param[2]);
-				//Если fieldname в GET строке действительно существует, то применяем фильтры
-				if(is_object($result[0]))
-				{
-						switch($condition)
-						{
-							case "more":
-								if(!is_numeric($value))
-									break;
-								$pieces['where'] .= " AND ( ".$wpdb->prefix."postmeta.meta_key = '$fieldname' AND  ".$wpdb->prefix."postmeta.meta_value > '$value')";
-								break;
-							case "less":
-								if(!is_numeric($value))
-									break;
-								$pieces['where'] .= " AND ( ".$wpdb->prefix."postmeta.meta_key = '$fieldname' AND  ".$wpdb->prefix."postmeta.meta_value < '$value')";								
-								break;
-							case "from":
-								if(!is_numeric($value))
-									break;
-								$pieces['where'] .= " AND ( ".$wpdb->prefix."postmeta.meta_key = '$fieldname' AND  ".$wpdb->prefix."postmeta.meta_value >= '$value')";								
-								break;
-							case "to":
-								if(!is_numeric($value))
-									break;
-								$pieces['where'] .= " AND ( ".$wpdb->prefix."postmeta.meta_key = '$fieldname' AND  ".$wpdb->prefix."postmeta.meta_value <= '$value')";								
-								break;
-							case "no":
-								if(is_numeric($value))									
-									$pieces['where'] .= " AND ( ".$wpdb->prefix."postmeta.meta_key = '$fieldname' AND  ".$wpdb->prefix."postmeta.meta_value <> '$value')";								
-								else 
-								{
-									$values = explode("||",$value);
-									if(is_numeric($values[0]) || is_numeric($values[1]))
-									{
-										$pieces['where'] .= " AND ( ".$wpdb->prefix."postmeta.meta_key = '$fieldname' AND  ".$wpdb->prefix."postmeta.meta_value <> '$values[0]' AND  ".$wpdb->prefix."postmeta.meta_value <> '$values[1]' )";
-									}
-								}
-								break;
-							case "default":
-								break;
+		$field_param = array ();
+		/*
+		 * РџР°СЂСЃРёРј $param...РћРЅ РїСЂРµРґСЃС‚Р°РІР»РµРЅ РІ РІРёРґРµ cf_xxx_xxx....Р’С‹С‚СЏРіРёРІР°РµРј РёРјСЏ
+		 * РїРѕР»СЏ Рё СѓСЃР»РѕРІРёРµ РїРѕРёСЃРєР° РџСЂРѕРІРµСЂСЏРµРј СЃСѓС‰РµСЃС‚РІСѓРµС‚ Р»Рё С‚Р°РєРѕРµ РёРјСЏ. Р•СЃР»Рё
+		 * СЃСѓС‰РµСЃС‚РІСѓРµС‚ С‚Рѕ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ СѓСЃР»РѕРІРёСЏ С„РѕСЂРјРёСЂСѓРµРј WHERE
+		 */
+		if (preg_match ( '/^cf_(.*)_(.*)/i', $param, $field_param )) {
+			$fieldname = strtolower ( $field_param [1] );
+			$result = $wpdb->get_results ( "SELECT * FROM  " . $wpdb->prefix . "v_field_options WHERE name = '$fieldname'", OBJECT );
+			$condition = strtolower ( $field_param [2] );
+			// Р•СЃР»Рё fieldname РІ GET СЃС‚СЂРѕРєРµ РґРµР№СЃС‚РІРёС‚РµР»СЊРЅРѕ СЃСѓС‰РµСЃС‚РІСѓРµС‚, С‚Рѕ
+			// РїСЂРёРјРµРЅСЏРµРј С„РёР»СЊС‚СЂС‹
+			if (is_object ( $result [0] )) {
+				switch ($condition) {
+					case "more" :
+						if (! is_numeric ( $value ))
+							break;
+						$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value > '$value')";
+						break;
+					case "less" :
+						if (! is_numeric ( $value ))
+							break;
+						$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value < '$value')";
+						break;
+					case "from" :
+						if (! is_numeric ( $value ))
+							break;
+						$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value >= '$value')";
+						break;
+					case "to" :
+						if (! is_numeric ( $value ))
+							break;
+						$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value <= '$value')";
+						break;
+					case "no" :
+						if (is_numeric ( $value ))
+							$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value <> '$value')";
+						else {
+							$values = explode ( "||", $value );
+							if (is_numeric ( $values [0] ) || is_numeric ( $values [1] )) {
+								$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value <> '$values[0]' AND  " . $wpdb->prefix . "postmeta.meta_value <> '$values[1]' )";
+							}
 						}
-
-				}			
-	
+						break;
+					case "default" :
+						break;
+				}
+			
 			}
-			else 
-			{
+		
+		} else {
 			/*
-				Если поле идет без условия..т.е. cf_xxx=4 Допустим то вытягиваем имя поля...тоже проверяем на наличие такого поля
-				и если существует то изменяем соответствующее условие поиска WHERE
-			*/
-				if(preg_match('/^cf_(.*)/i', $param,$field_param))
-				{
-					$fieldname = strtolower($field_param[1]);
-					$result = $wpdb->get_results("SELECT * FROM  ".$wpdb->prefix."v_field_options WHERE name = '$fieldname'",OBJECT);
-					if(is_object($result[0]))
-					{
-						if(is_numeric($value))
-						{
-							$pieces['where'] .= " AND ( ".$wpdb->prefix."postmeta.meta_key = '$fieldname' AND  ".$wpdb->prefix."postmeta.meta_value = '$value')";
-						}
-						else 
-						{
-							$values = explode("||",$value);
-							if(is_numeric($values[0]) || is_numeric($values[1]))
-							{
-								$pieces['where'] .= " AND ( ".$wpdb->prefix."postmeta.meta_key = '$fieldname' AND ( ".$wpdb->prefix."postmeta.meta_value = '$values[0]' OR  ".$wpdb->prefix."postmeta.meta_value = '$values[1]' ))";
-							}
-							else 
-							{
-								if($value == "_void_")
-								$pieces['where'] .= " AND ( ".$wpdb->prefix."postmeta.meta_key = '$fieldname' AND  ".$wpdb->prefix."postmeta.meta_value = '')";
-							}
+			 * Р•СЃР»Рё РїРѕР»Рµ РёРґРµС‚ Р±РµР· СѓСЃР»РѕРІРёСЏ..С‚.Рµ. cf_xxx=4 Р”РѕРїСѓСЃС‚РёРј С‚Рѕ РІС‹С‚СЏРіРёРІР°РµРј
+			 * РёРјСЏ РїРѕР»СЏ...С‚РѕР¶Рµ РїСЂРѕРІРµСЂСЏРµРј РЅР° РЅР°Р»РёС‡РёРµ С‚Р°РєРѕРіРѕ РїРѕР»СЏ Рё РµСЃР»Рё
+			 * СЃСѓС‰РµСЃС‚РІСѓРµС‚ С‚Рѕ РёР·РјРµРЅСЏРµРј СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РµРµ СѓСЃР»РѕРІРёРµ РїРѕРёСЃРєР° WHERE
+			 */
+			if (preg_match ( '/^cf_(.*)/i', $param, $field_param )) {
+				$fieldname = strtolower ( $field_param [1] );
+				$result = $wpdb->get_results ( "SELECT * FROM  " . $wpdb->prefix . "v_field_options WHERE name = '$fieldname'", OBJECT );
+				if (is_object ( $result [0] )) {
+					if (is_numeric ( $value )) {
+						$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value = '$value')";
+					} else {
+						$values = explode ( "||", $value );
+						if (is_numeric ( $values [0] ) || is_numeric ( $values [1] )) {
+							$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND ( " . $wpdb->prefix . "postmeta.meta_value = '$values[0]' OR  " . $wpdb->prefix . "postmeta.meta_value = '$values[1]' ))";
+						} else {
+							if ($value == "_void_")
+								$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value = '')";
 						}
 					}
 				}
 			}
-		//Это копия wordpress'овского массива $pieces. Он к нам приходит, мы изменяет элемент ['where] и отправляем назад. 
+		}
+		// Р­С‚Рѕ РєРѕРїРёСЏ wordpress'РѕРІСЃРєРѕРіРѕ РјР°СЃСЃРёРІР° $pieces. РћРЅ Рє РЅР°Рј РїСЂРёС…РѕРґРёС‚, РјС‹
+		// РёР·РјРµРЅСЏРµС‚ СЌР»РµРјРµРЅС‚ ['where] Рё РѕС‚РїСЂР°РІР»СЏРµРј РЅР°Р·Р°Рґ.
 		return $pieces;
 	}
 }

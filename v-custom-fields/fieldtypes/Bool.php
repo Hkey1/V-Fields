@@ -3,7 +3,7 @@ include ($_SERVER ['DOCUMENT_ROOT'] . '/wp-content/plugins/v-custom-fields/v-abs
 
 class Bool extends FieldType {
 	private $default = 0;
-	//Методы доступа/
+	//РњРµС‚РѕРґС‹ РґРѕСЃС‚СѓРїР°/
 	function get_maxlength() {
 		return $this->maxlength;
 	}
@@ -11,7 +11,7 @@ class Bool extends FieldType {
 		return $this->default;
 	}
 	/////////////////
-	//Валидатор////
+	//Р’Р°Р»РёРґР°С‚РѕСЂ////
 	function ValidateOptions($array) {
 		$err_status = 0;
 		$str = iconv ( "utf-8", "windows-1251", $array ['fieldname'] );
@@ -19,7 +19,7 @@ class Bool extends FieldType {
 			echo "<strong>NAME'S LENGTH IS MORE THAN 20 SYMBOLS</strong></br>";
 			$err_status ++;
 		}
-		if (! preg_match ( "/^[0-9a-zA-ZА-я\-_ \s]+$/", $str )) {
+		if (! preg_match ( "/^[0-9a-zA-ZРђ-СЏ\-_ \s]+$/", $str )) {
 			echo "<strong>NOT VALID STRING \"" . $array ['fieldname'] . "\". ONLY DIGITS, SPACES AND UNDERLINES AVAILIBLE</strong></br>";
 			$err_status ++;
 		}
@@ -45,7 +45,7 @@ class Bool extends FieldType {
 			</div>";
 		return $str;
 	}
-	//Сохранение нового поля
+	//РЎРѕС…СЂР°РЅРµРЅРёРµ РЅРѕРІРѕРіРѕ РїРѕР»СЏ
 	function SaveOptions($array) {
 		$err_status = $this->ValidateOptions ( $array );
 		if ($err_status)
@@ -71,7 +71,7 @@ class Bool extends FieldType {
 		}
 	}
 	
-	//Функция загрузки полей
+	//Р¤СѓРЅРєС†РёСЏ Р·Р°РіСЂСѓР·РєРё РїРѕР»РµР№
 	function LoadOptions($data) {
 		$options = $data ['options'];
 		if (! strlen ( $options ))
@@ -103,7 +103,7 @@ class Bool extends FieldType {
 			</div>";
 		return $str;
 	}
-	//Функция вывода кастомного поля в создании/редактировании поста
+	//Р¤СѓРЅРєС†РёСЏ РІС‹РІРѕРґР° РєР°СЃС‚РѕРјРЅРѕРіРѕ РїРѕР»СЏ РІ СЃРѕР·РґР°РЅРёРё/СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёРё РїРѕСЃС‚Р°
 	function OutField($array, $post_id = 0) {
 		$translit = $array ['translit'];
 		$array = unserialize ( $array ['options'] );
@@ -118,7 +118,7 @@ class Bool extends FieldType {
 			if (! $value)
 				$value = NULL;
 		}
-		//Если статья ещё не создана т.е. ещё нету сохраненных значений полей то выводим дефолтные значение
+		//Р•СЃР»Рё СЃС‚Р°С‚СЊСЏ РµС‰С‘ РЅРµ СЃРѕР·РґР°РЅР° С‚.Рµ. РµС‰С‘ РЅРµС‚Сѓ СЃРѕС…СЂР°РЅРµРЅРЅС‹С… Р·РЅР°С‡РµРЅРёР№ РїРѕР»РµР№ С‚Рѕ РІС‹РІРѕРґРёРј РґРµС„РѕР»С‚РЅС‹Рµ Р·РЅР°С‡РµРЅРёРµ
 		if ($value)
 			$checked = "checked=\"true\"";
 		else
