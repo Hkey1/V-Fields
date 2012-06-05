@@ -194,7 +194,7 @@ $(document).ready(function() {
 						 success :function(data)
 						 {
 					        current_div.html(data);
-
+					        Custom.init;
 						 }
 						 });
 			}));

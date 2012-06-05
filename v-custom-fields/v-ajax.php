@@ -1,5 +1,5 @@
 <?php
-include_once ($_SERVER ['DOCUMENT_ROOT'] . '/wp-content/plugins/v-custom-fields/v-functions.php');
+include_once (__DIR__ . '/v-functions.php');
 // ////////////////////////////////////////
 // Это тип действия...например вывести настройки типа поля...сохранить поля
 // и.т.д
@@ -38,7 +38,7 @@ function NewOptions($classname) {
 	$current_class = new ReflectionClass ( $classname );
 	$current_object = $current_class->newInstance ();
 	// Объект выводит свои настройки типа поля в HTML
-	echo $current_object->NewOptions ();
+	echo $current_object->LoadOptions ("new");
 	unset ( $current_object );
 }
 
@@ -46,7 +46,7 @@ function NewOptions($classname) {
 // заново сохраняем только что принятые
 function SaveOptions($data) {
 	global $db, $wpdb;
-	$err_status = 1;
+	$err_status = "";
 	// разбиваем всю строку на массивы....каждый элемент это Поле
 	$fields = explode ( "hr=true", $data );
 	// очищаем массив от пустых элементов
@@ -73,15 +73,20 @@ function SaveOptions($data) {
 		$current_class = new ReflectionClass ( $final_field ['select'] );
 		$current_object = $current_class->newInstance ();
 		// Если валидатор сработал то пользователю выдастся ошибка
-		
-		$err_status = $err_status + $current_object->SaveOptions ( $final_field );
+		$err_status_field =  $current_object->ValidateOptions($final_field);
+		if(!strlen($err_status_field))
+			$current_object->SaveOptions ( $final_field );
+		else
+			$err_status .=$err_status_field;
 		
 		// удаляем только что созданный объект, т.к. он нам ни к чему
 		unset ( $current_object );
 	}
 	// echo $err_status;
-	if ($err_status == 1)
+	if (!strlen($err_status))
 		echo "SAVED";
+	else
+		echo $err_status;
 }
 // Функция которая создает объект класса и передает управление ему.Тот в свою
 // очередь выводит поля опций.
@@ -90,7 +95,7 @@ function ChangeType($fieldtype) {
 		return 0;
 	$current_class = new ReflectionClass ( $fieldtype );
 	$current_object = $current_class->newInstance ();
-	echo $current_object->ChangeType ();
+	echo $current_object->LoadOptions ("change");
 	unset ( $current_object );
 
 }

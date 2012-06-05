@@ -77,6 +77,22 @@ $(document).ready(function(){
 			resizable : false
 		});
 	});
+	
+	//При нажатии на Enter закрываем диалог редактирования онлайн
+    $(".edit_digit,.edit_text,.edit_string,.edit_bool,.edit_select").keypress(function(e)
+            {
+                code= (e.keyCode ? e.keyCode : e.which);
+                if (code == 13)
+                	{
+                		classname = $(e.target).parent().attr('class').split(' ')[0];
+                		buttons = $("."+classname).dialog('option', 'buttons');
+                		buttons[0].click();
+                		$("."+classname).dialog("close");
+                	}
+
+
+            });
+
 	//String
 	$(".string").dblclick(function()
 	{

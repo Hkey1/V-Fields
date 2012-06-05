@@ -90,12 +90,12 @@ function show_fields_options() {
 	while ( $row = mysql_fetch_assoc ( $result ) ) {
 		// print_r($row);
 		$field_id = $row ['fieldtype'];
-		$class_query_result = mysql_query ( "SELECT name FROM  " . $wpdb->prefix . "v_field_types WHERE id = $field_id LIMIT 1", $db );
+		$class_query_result = mysql_query ( "SELECT `name` FROM  " . $wpdb->prefix . "v_field_types WHERE id = $field_id LIMIT 1", $db );
 		$classname = mysql_result ( $class_query_result, 0 );
 		// echo $classname."</br></br>";
 		$current_class = new ReflectionClass ( $classname );
 		$current_object = $current_class->newInstance ();
-		$str = $str . $current_object->LoadOptions ( $row );
+		$str = $str . $current_object->LoadOptions ("load", $row );
 		unset ( $current_object );
 	}
 	return $str;

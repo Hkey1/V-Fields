@@ -658,3 +658,7 @@ input[readonly]
 {
 	display: none;
 }
+ span.digit,span.text,span.string,span.bool,span.select
+{
+	border-bottom: 2px dashed black; cursor:pointer;
+}

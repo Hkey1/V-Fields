@@ -8,7 +8,6 @@ include_once ($_SERVER['DOCUMENT_ROOT']."/wp-content/plugins/v-custom-fields/v-f
         <li><a href="#tab-settings"><span>Settings</span></a></li>
     </ul>
     <div id="tab-fields">
-    <span id="preview" style="font-size: 16px; border-bottom: 1px dashed black; cursor: help;"><b>Preview</b></span>
 <div id="accordion">
 <?php 
 	echo show_fields_options();
@@ -21,7 +20,7 @@ include_once ($_SERVER['DOCUMENT_ROOT']."/wp-content/plugins/v-custom-fields/v-f
 <button id="save_all" <?php if(!field_count()) echo "style=\"display:none;\"";?> class="ui-button ui-button-text-only ui-widget ui-state-default ui-corner-all">
    <span class="ui-button-text">Save</span>
 </button>
-
+        <span id="preview" style="position: relative; float: right;font-size: 16px; border-bottom: 1px dashed black; cursor: help;"><b>Preview</b></span>
 <div class="ui-state-highlight ui-corner-all" id="saved" style="margin-top: 20px; padding: 0 .7em;"> 
 	<p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>
 	<strong>SAVED!</strong></p>
@@ -45,6 +44,7 @@ include_once ($_SERVER['DOCUMENT_ROOT']."/wp-content/plugins/v-custom-fields/v-f
 <div id="preview_fields" title="preview"></div>
 
 <div id="delete_field_dialog" title="Confirmation">Are you sure you want to delete this field</div>
+
     </div>
     <div id="tab-settings">
 		<p>Settings</p></br>

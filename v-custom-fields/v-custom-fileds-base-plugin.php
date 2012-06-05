@@ -12,6 +12,7 @@ include (__DIR__ . "/v-custom-fields.class.php");
 //
 add_action ( "wp_head", "wp_head_js_to_content", 0 );
 
+
 function wp_head_js_to_content() {
 	echo '<link rel="stylesheet" href="/wp-content/plugins/v-custom-fields/css/custom-theme/jquery-ui-1.8.16.custom.css">';
 	wp_deregister_script ( 'jquery' );
@@ -56,6 +57,9 @@ function v_load_scripts($hook_suffix) {
 		wp_enqueue_script ( 'jqueryui' );
 		wp_register_script ( 'jquery_form', '/wp-content/plugins/v-custom-fields/js/jquery.form.js' );
 		wp_enqueue_script ( 'jquery_form' );
+		wp_deregister_script ( 'custom-form-elements' );
+		wp_register_script ( 'custom-form-elements', '/wp-content/plugins/v-custom-fields/js/custom-form-elements.js' );
+		wp_enqueue_script ( 'custom-form-elements' );
 		wp_deregister_script ( 'v_adminpage' );
 		wp_register_script ( 'v_adminpage', '/wp-content/plugins/v-custom-fields/js/v-adminpage.js' );
 		wp_enqueue_script ( 'v_adminpage' );
@@ -83,6 +87,8 @@ function v_load_styles() {
 	?>
 <link rel="stylesheet"
 	href="/wp-content/plugins/v-custom-fields/css/custom-theme/jquery-ui-1.8.16.custom.css">
+<link rel="stylesheet"
+	href="/wp-content/plugins/v-custom-fields/css/form.css">
 <?php
 }
 
@@ -103,9 +109,9 @@ function v_display_snippets() {
 // ///////////////////////////////////////////////////////
 add_action ( 'add_meta_boxes', 'v_view_custom_fields' );
 // добавляем хук для вывода ошибки
-add_action ( 'admin_notices', 'custom_fields_error' );
+add_action ( 'admin_notices', 'v_custom_fields_error' );
 // функция вывода ошибки, когда сохраняется пост
-function custom_fields_error() {
+function v_custom_fields_error() {
 	if (! session_id ())
 		session_start ();
 	echo $_SESSION ['field_errors'];
@@ -142,7 +148,7 @@ function v_view_custom_fields_html() {
 	$fields = $wpdb->get_results ( "SELECT * FROM  " . $wpdb->prefix . "v_field_options", ARRAY_A );
 	foreach ( $fields as $row ) {
 		$fieldtype = $row ['fieldtype'];
-		$fieldclass = $wpdb->get_var ( "SELECT name FROM  " . $wpdb->prefix . "v_field_types WHERE id = $fieldtype" );
+		$fieldclass = $wpdb->get_var ( "SELECT `name` FROM  " . $wpdb->prefix . "v_field_types WHERE id = $fieldtype" );
 		$current_class = new ReflectionClass ( $fieldclass );
 		$current_object = $current_class->newInstance ();
 		if ($is_new_article) {
@@ -257,18 +263,18 @@ CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "v_field_options` (
 }
 
 function v_custom_fields_deactivate() {
-	global $wpdb;
-	$wpdb->query ( "DROP TABLE  " . $wpdb->prefix . "v_fields" );
-	$wpdb->query ( "DROP TABLE  " . $wpdb->prefix . "v_field_options" );
-	$wpdb->query ( "DROP TABLE  " . $wpdb->prefix . "v_field_types" );
-	$wpdb->query ( "DROP TABLE  " . $wpdb->prefix . "v_snippets" );
+	if (is_file ( __DIR__ . "/field_options.ini" )) {
+		$fh = fopen ( __DIR__ . "/field_options.ini", "w" ) or die ( "File ($file) does not exist!" );
+		fwrite($fh,"");
+		fclose($fh);
+	}
 	return 0;
 }
 
 // /////////////////////////////////////////////
 // ////SEARCH CUSTOM FIELDS/////////////////////
 // /////////////////////////////////////////////
-function custom_search_join($join) {
+function v_custom_search_join($join) {
 	if (is_search () && isset ( $_GET ['s'] )) {
 		global $wpdb;
 		
@@ -276,18 +282,18 @@ function custom_search_join($join) {
 	}
 	return ($join);
 }
-add_filter ( 'posts_join', 'custom_search_join' );
+add_filter ( 'posts_join', 'v_custom_search_join' );
 
-function custom_search_groupby($groupby) {
+function v_custom_search_groupby($groupby) {
 	if (is_search () && isset ( $_GET ['s'] )) {
 		global $wpdb;
 		$groupby = " $wpdb->posts.ID ";
 	}
 	return ($groupby);
 }
-add_filter ( 'posts_groupby', 'custom_search_groupby' );
+add_filter ( 'posts_groupby', 'v_custom_search_groupby' );
 
-function custom_search_where($where) {
+function v_custom_search_where($where) {
 	$old_where = $where;
 	if (is_search () && isset ( $_GET ['s'] )) {
 		global $wpdb;
@@ -353,15 +359,15 @@ function custom_search_where($where) {
 	
 	return ($where);
 }
-add_filter ( 'posts_where', 'custom_search_where' );
+add_filter ( 'posts_where', 'v_custom_search_where' );
 
 /*
  * INDEX SEARCH
  */
 
-add_filter ( 'posts_clauses', 'intercept_query_clauses', 20, 1 );
+add_filter ( 'posts_clauses', 'v_intercept_query_clauses', 20, 1 );
 
-function intercept_query_clauses($pieces) {
+function v_intercept_query_clauses($pieces) {
 	// Если это индексный поиск
 	if ($_GET ['isearch'] == 1) {
 		// Очищаем условие поиска
@@ -404,23 +410,44 @@ function intercept_query_clauses($pieces) {
 				continue;
 			}
 			/*
-			 * Здесь вытягиваем паресром имя поля, проверяем существует ли такое
+			 * Здесь вытягиваем парсером имя поля, проверяем существует ли такое
 			 * поле..Если существует, то создаем объект это класса и условие
 			 * поиска уже создает сам объект..Управление переходит к
 			 * нему....Передаем и принимаем уже готовый wordpress'овский массив
 			 * $pieces...Правим лишь элеменм 'where'.
 			 */
-			if (preg_match ( '/^cf_([a-zA-Z0-9]*)/i', $key, $parts )) {
+			if (preg_match ( '/^cf_([a-zA-Z0-9_]*)(?>(_more|_less|_from|_to|_void_|_no))/i', $key, $parts )) {
 				$fieldname = strtolower ( $parts [1] );
+				$param = substr(strtolower( $parts[2]),1);
 				$result = $wpdb->get_results ( "SELECT name FROM  " . $wpdb->prefix . "v_field_types WHERE id=(SELECT fieldtype FROM  " . $wpdb->prefix . "v_field_options WHERE name = '$fieldname')", OBJECT );
 				$fieldclass = $result [0]->name;
 				if (! $fieldclass)
 					continue;
 				$current_class = new ReflectionClass ( $fieldclass );
 				$current_object = $current_class->newInstance ();
-				$pieces = $current_object->Mysql_Where ( $pieces, $key, $value );
-			} else
-				continue;
+				if($param == "no")
+					$pieces = $current_object->Mysql_Where_No ( $pieces, $fieldname, $value );
+				else
+					$pieces = $current_object->Mysql_Where_Special ( $pieces, $param, $fieldname, $value );
+				unset($current_object);
+			}
+			 else
+			{
+				if(preg_match ( '/^cf_([a-zA-Z0-9_]*)/i', $key, $parts ))
+				{
+					$fieldname = strtolower ( $parts [1] );
+					$result = $wpdb->get_results ( "SELECT name FROM  " . $wpdb->prefix . "v_field_types WHERE id=(SELECT fieldtype FROM  " . $wpdb->prefix . "v_field_options WHERE name = '$fieldname')", OBJECT );
+					$fieldclass = $result [0]->name;
+					if (! $fieldclass)
+						continue;
+					$current_class = new ReflectionClass ( $fieldclass );
+					$current_object = $current_class->newInstance ();
+					$pieces = $current_object->Mysql_Where ( $pieces, $fieldname, $value );
+					unset($current_object);
+				}
+				else
+					continue;	
+			}
 		}
 		// Добавляеем условие что ищем тока по полям с включенным индесным
 		// поиском
@@ -435,8 +462,24 @@ function intercept_query_clauses($pieces) {
 /*
  * END INDEX SEARCH
  */
-// /////////////////////////////////////////////
-// /////////////////////////////////////////////
-// /////////////////////////////////////////////
+/*
+ * SHORTCODE
+ * */
+function v_shortcode_handler( $atts, $content = null ) {
+	global $post,$wpdb;
+	if(isset($atts['name']))
+	{
+		$post_id = $post->ID;
+		$fieldname = mysql_escape_string($atts['name']);
+		$result = $wpdb->get_results("SELECT `data` FROM `" . $wpdb->prefix . "v_fields` WHERE translit = '$fieldname' AND `post_id` = '$post_id' LIMIT 1",OBJECT);
+		if($result[0])
+			return $result[0]->data;
+	}
+}
+add_shortcode( 'cfield', 'v_shortcode_handler' );
+/*
+ * END SHORTCODE
+ * */
+
 
 ?>
