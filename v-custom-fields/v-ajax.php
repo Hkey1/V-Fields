@@ -45,6 +45,9 @@ function NewOptions($classname) {
 // Функция сохранения полей в базе данных. Принцип- удаляем все имеющиеся поля и
 // заново сохраняем только что принятые
 function SaveOptions($data) {
+	//$data = urlencode($data);
+	//$data = "data=hr%3Dtrue%26fieldname%3Dop1%26select%3DBool%26hr%3Dtrue%26fieldname%3Dop2%26select%3DSelect%26default%3Dfirst%250D%250Asecond%250D%250Athird%26search%3D1";
+	$data = urldecode($data);
 	global $db, $wpdb;
 	$err_status = "";
 	// разбиваем всю строку на массивы....каждый элемент это Поле

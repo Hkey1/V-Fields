@@ -12,7 +12,7 @@ class Select extends FieldType {
 	}
 	
 	function ValidateOptions($array) {
-		$err_status = parent::ValidateOptions($array);
+		//$err_status = parent::ValidateOptions($array);
 		return $err_status;
 	}
 	// ///////////////////////////

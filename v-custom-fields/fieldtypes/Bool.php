@@ -10,7 +10,7 @@ class Bool extends FieldType {
 		$this->index_search = false;
 	}
 	function ValidateOptions($array) {
-		$err_status = parent::ValidateOptions($array);
+		//$err_status = parent::ValidateOptions($array);
 		return $err_status;
 	}
 	// ///////////////////////////
