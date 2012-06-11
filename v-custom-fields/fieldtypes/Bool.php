@@ -5,84 +5,19 @@ class Bool extends FieldType {
 	
 	function __construct() {
 		parent::__construct ();
-		$this->default_options = array ("default" => false );
+		$this->default_options = array ("default" => array ("type" => "bool", "value" => false, "label" => "Is checked default" ), "search_enabled" => true, "isearch_enabled" => false );
 		$this->text_search = false;
 		$this->index_search = false;
 	}
 	function ValidateOptions($array) {
-		$err_status = "";
-		$err_status .= parent::Validate ( $array ['fieldname'], "length", 20 );
-		$err_status .= parent::Validate ( $array ['fieldname'], "string" );
+		$err_status = parent::ValidateOptions($array);
 		return $err_status;
 	}
 	// ///////////////////////////
 	function ValidatePostField($array = NULL, $data = NULL) {
-		// return "<div class=\"error\"><p>This or that went wrong</p></div>";
 		return true;
 	}
 	
-	// Функция загрузки полей
-	function LoadOptions($load_type = "new", $data = NULL) {
-		$str = "";
-		$selection = make_select_list ( 'Bool' );
-		// Если вызываем функции для загрузки опций существующего поля
-		if ($load_type == "load") {
-			if ($data != NULL) {
-				$options = $data ['options'];
-				if (! strlen ( $options ))
-					return 0;
-				$array = unserialize ( $options );
-				$select = $array ['select'];
-				$name = $array ['fieldname'];
-				$value = $array ['default'];
-				$value ? $checked = "checked=\"true\"" : $checked = "";
-				$str = "
-				<div class=\"section\">
-				<h3>
-				<span class=\"container\">
-				<input type=\"hidden\" name=\"hr\" value=\"true\">
-				<input type=\"text\" name=\"fieldname\" class=\"name\" value=\"$name\" />
-				<span>
-				<select class=\"select\" name=\"select\">$selection</select>
-				<span class=\"ui-icon ui-icon-closethick\"></span>
-				</span>
-				</span>
-				</h3>
-				<div class=\"field_settings\">
-				Default is checked?</br>
-				<input type=\"checkbox\" name=\"default\" $checked value=\"1\" />
-				</div>
-				</div>";
-			}
-		} else {
-			$this->default_options ['default'] ? $checked = "checked=\"true\"" : $checked = "";
-			if ($load_type == "new") {
-				$str = "
-				<div class=\"section\">
-				<h3>
-					<span class=\"container\">
-					<input type=\"hidden\" name=\"hr\" value=\"true\">
-					<input type=\"text\" name=\"fieldname\" class=\"name\" value=\"\" />
-					<span>
-					<select class=\"select\" name=\"select\">" . $selection . "</select>
-					<span class=\"ui-icon ui-icon-closethick\"></span>
-					</span>
-					</span>
-					</h3>
-					<div class=\"field_settings\">
-						Default is checked?</br>
-						<input type=\"checkbox\" name=\"default\" $checked value=\"1\" />
-					</div>
-					</div>";
-			
-			} elseif ($load_type == "change") {
-				$str = "
-						Default is checked?</br>
-						<input type=\"checkbox\" name=\"default\" $checked value=\"1\" />";
-			}
-		}
-		return $str;
-	}
 	// Функция вывода кастомного поля в создании/редактировании поста
 	function OutField($array, $post_id = 0) {
 		$translit = $array ['translit'];
@@ -110,12 +45,7 @@ class Bool extends FieldType {
 		
 		return $result;
 	}
-	// /////////////////////////////////////////////////////////////////
-	function ChangeType() {
-		$str = "Default is checked?</br>
-				<input type=\"checkbox\" name=\"checked\" value=\"1\" />";
-		return $str;
-	}
+	
 	// //////////////////////////////////////////////////////////////////
 	function Out($array = NULL, $tostring = NULL) {
 		$id = $array ['id'];
@@ -149,13 +79,6 @@ class Bool extends FieldType {
 		}
 	}
 	// /////////////////////////////////////////////////////////////////////////
-	function Mysql_Where($pieces = NULL, $fieldname = NULL, $value = NULL) {
-		return $pieces;
-	}
-	// Поиск cf_field_no=value
-	function Mysql_Where_No($pieces = NULL, $fieldname = NULL, $value = NULL) {
-		return $pieces;
-	}
 	// Весь остальной поиск. cf_field_less=value,cf_field_more=value
 	function Mysql_Where_Special($pieces = NULL, $param = NULL, $fieldname = NULL, $value = NULL) {
 		return $pieces;

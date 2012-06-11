@@ -6,27 +6,15 @@ class Select extends FieldType {
 	function __construct() {
 		parent::__construct ();
 		$this->default_options = array ("default" => "" );
+		$this->default_options = array ("default" => array ("type" => "text", "value" => "", "label" => "Select items(each string is item)" ), "search_enabled" => true, "isearch_enabled" => false );
 		$this->text_search = true;
 		$this->index_search = false;
 	}
 	
 	function ValidateOptions($array) {
-		$err_status = "";
-		$err_status .= parent::Validate ( $array ['fieldname'], "length", 20 );
-		$err_status .= parent::Validate ( $array ['fieldname'], "string" );
+		$err_status = parent::ValidateOptions($array);
 		return $err_status;
 	}
-	/*
-	 * function ValidateOptions($array) { $err_status = 0; $str = iconv (
-	 * "utf-8", "windows-1251", $array ['fieldname'] ); if (strlen ( $str ) >
-	 * 20) { echo "<strong>NAME'S LENGTH IS MORE THAN 20 SYMBOLS</strong></br>";
-	 * $err_status ++; } if (! preg_match ( "/^[0-9a-zA-ZА-я\-_ \s]+$/", $str ))
-	 * { echo "<strong>NOT VALID STRING \"" . $array ['fieldname'] . "\". ONLY
-	 * DIGITS, SPACES AND UNDERLINES AVAILIBLE</strong></br>"; $err_status ++; }
-	 * $select_items = explode ( "\n", $array ['default'] ); foreach (
-	 * $select_items as $row ) { if (strlen ( $row ) > 20) { echo $row . " TOO
-	 * LONG</br>"; $err_status ++; } } return $err_status; }
-	 */
 	// ///////////////////////////
 	function ValidatePostField($array = NULL, $data = NULL) {
 		if (! $array)
@@ -35,70 +23,6 @@ class Select extends FieldType {
 		return true;
 	}
 	
-	// Функция загрузки полей
-	function LoadOptions($load_type = "new", $data = NULL) {
-		$str = "";
-		$selection = make_select_list ( 'Select' );
-		// Если вызываем функции для загрузки опций существующего поля
-		if ($load_type == "load") {
-			if ($data != NULL) {
-				$options = $data ['options'];
-				if (! strlen ( $options ))
-					return 0;
-				$array = unserialize ( $options );
-				$id = $data ['id'];
-				$select = $array ['select'];
-				$name = $array ['fieldname'];
-				$default = $array ['default'];
-				$search = $array ['search'];
-				($search == 1) ? $search_checked = "checked=\"true\"" : $search_checked = "";
-				$str = "
-				<div class=\"section\">
-					<h3>
-					     <span class=\"container\">
-					     	<input type=\"hidden\" name=\"hr\" value=\"true\">
-							<input type=\"text\" name=\"fieldname\" class=\"name\" value=\"$name\" />
-							<span>
-							<select class=\"select\" name=\"select\">$selection</select>
-							<span class=\"ui-icon ui-icon-closethick\"></span>
-							</span>
-						</span>		
-					</h3>
-					<div class=\"field_settings\">
-						<p>Select items(each string is item):<br/> <textarea name=\"default\" cols=80 rows=10>" . $default . "</textarea></p>
-						<p><b>text search</b> <input type=\"checkbox\" name=\"search\" value=\"1\" $search_checked /></p>
-					</div>
-				</div>";
-			}
-		} else {
-			$this->text_search ? $search_checked = "checked=\"true\"" : $search_checked = "";
-			if ($load_type == "new") {
-				$str = "
-			<div class=\"section\">
-				<h3>
-					<span class=\"container\">
-						<input type=\"hidden\" name=\"hr\" value=\"true\">
-						<input type=\"text\" name=\"fieldname\" class=\"name\" value=\"\" />
-					<span>
-					<select class=\"select\" name=\"select\">" . $selection . "</select>
-					<span class=\"ui-icon ui-icon-closethick\"></span>
-					</span>
-					</span>
-				</h3>
-						<div class=\"field_settings\">
-							<p>Select items(each string is item):<br/> <textarea name=\"default\" cols=80 rows=10>" . $this->default_options ['default'] . "</textarea></p>
-							<p><b>text search</b> <input type=\"checkbox\" name=\"search\" value=\"1\" $search_checked /></p>
-						</div>
-			</div>";
-			
-			} elseif ($load_type == "change") {
-				$str = "
-				<p>Select items(each string is item):<br/> <textarea name=\"default\" cols=80 rows=10>" . $this->default_options ['default'] . "</textarea></p>
-				<p><b>text search</b> <input type=\"checkbox\" name=\"search\" value=\"1\" $search_checked /></p>";
-			}
-		}
-		return $str;
-	}
 	// Функция вывода кастомного поля в создании/редактировании поста
 	function OutField($array, $post_id = 0) {
 		$translit = $array ['translit'];
@@ -196,13 +120,6 @@ class Select extends FieldType {
 		echo $select_values [$data];
 	}
 	// //////////////////////////////////////////////////////////////////////
-	function Mysql_Where($pieces = NULL, $fieldname = NULL, $value = NULL) {
-		return $pieces;
-	}
-	// Поиск cf_field_no=value
-	function Mysql_Where_No($pieces = NULL, $fieldname = NULL, $value = NULL) {
-		return $pieces;
-	}
 	// Весь остальной поиск. cf_field_less=value,cf_field_more=value
 	function Mysql_Where_Special($pieces = NULL, $param = NULL, $fieldname = NULL, $value = NULL) {
 		return $pieces;

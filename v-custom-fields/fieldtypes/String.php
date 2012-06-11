@@ -5,14 +5,12 @@ class String extends FieldType {
 	
 	function __construct() {
 		parent::__construct ();
-		$this->default_options = array ("default" => "", "max_length" => 300, "wysiwyg" => false );
+		$this->default_options = array ("max_length" => array ("type" => "int", "value" => 1000, "label" => "Max length" ), "default" => array ("type" => "string", "value" => "", "label" => "Default" ), "search_enabled" => true, "isearch_enabled" => false );
 		$this->text_search = true;
 		$this->index_search = false;
 	}
 	function ValidateOptions($array) {
-		$err_status = "";
-		$err_status .= parent::Validate ( $array ['fieldname'], "length", 20 );
-		$err_status .= parent::Validate ( $array ['fieldname'], "string" );
+		$err_status = parent::ValidateOptions($array);
 		return $err_status;
 	}
 	
@@ -30,73 +28,7 @@ class String extends FieldType {
 		return true;
 	}
 	
-	// Функция загрузки полей
-	function LoadOptions($load_type = "new", $data = NULL) {
-		$str = "";
-		$selection = make_select_list ( 'String' );
-		// Если вызываем функции для загрузки опций существующего поля
-		if ($load_type == "load") {
-			if ($data != NULL) {
-				$options = $data ['options'];
-				if (! strlen ( $options ))
-					return 0;
-				$array = unserialize ( $options );
-				$select = $array ['select'];
-				$name = $array ['fieldname'];
-				$max_length = $array ['max_length'];
-				$default = $array ['default'];
-				$search = $array ['search'];
-				($search == 1) ? $search_checked = "checked=\"true\"" : $search_checked = "";
-				$str = "
-				<div class=\"section\">
-				<h3>
-					<span class=\"container\">
-						<input type=\"hidden\" name=\"hr\" value=\"true\">
-						<input type=\"text\" name=\"fieldname\" class=\"name\" value=\"$name\" />
-					<span>
-						<select class=\"select\" name=\"select\">" . $selection . "</select>
-						<span class=\"ui-icon ui-icon-closethick\"></span>
-					</span>
-					</span>
-				</h3>
-				<div class=\"field_settings\">
-					<p>Max Length:<br/> <input type=\"text\" name=\"max_length\" class=\"default\" value=\"" . $max_length . "\"/></p>					
-					<p>Default:<br/> <input type=\"text\" name=\"default\" value=\"$default\" /></p>
-					<p><b>text search</b> <input type=\"checkbox\" name=\"search\" value=\"1\" $search_checked /></p>
-				</div>
-				</div>";
-			}
-		} else {
-			$this->text_search ? $search_checked = "checked=\"true\"" : $search_checked = "";
-			if ($load_type == "new") {
-				$str = "
-			<div class=\"section\">
-			<h3>
-				<span class=\"container\">
-					<input type=\"hidden\" name=\"hr\" value=\"true\">
-					<input type=\"text\" name=\"fieldname\" class=\"name\" value=\"\" />
-					<span>
-					<select class=\"select\" name=\"select\">" . $selection . "</select>
-					<span class=\"ui-icon ui-icon-closethick\"></span>
-					</span>
-				</span>
-			</h3>
-				<div class=\"field_settings\">
-					<p>Max Length:<br/> <input type=\"text\" name=\"max_length\" class=\"default\" value=\"" . $this->default_options ['max_length'] . "\"/></p>					
-					<p>Default:<br/> <input type=\"text\" name=\"default\" value=\"" . $this->default_options ['default'] . "\" /></p>
-					<p><b>text search</b> <input type=\"checkbox\" name=\"search\" value=\"1\" $search_checked /></p>
-				</div>
-				</div>";
-			
-			} elseif ($load_type == "change") {
-				$str = "					
-			<p>Max Length:<br/> <input type=\"text\" name=\"max_length\" class=\"default\" value=\"" . $this->default_options ['max_length'] . "\"/></p>					
-			<p>Default:<br/> <input type=\"text\" name=\"default\" value=\"" . $this->default_options ['default'] . "\" /></p>
-			<p><b>text search</b> <input type=\"checkbox\" name=\"search\" value=\"1\" $search_checked /></p>";
-			}
-		}
-		return $str;
-	}
+	
 	// Функция вывода кастомного поля в создании/редактировании поста
 	function OutField($array, $post_id = 0) {
 		$translit = $array ['translit'];
@@ -170,13 +102,6 @@ class String extends FieldType {
 		echo $data;
 	}
 	// /////////////////////////////////////////////////////////////////////////
-	function Mysql_Where($pieces = NULL, $fieldname = NULL, $value = NULL) {
-		return $pieces;
-	}
-	// Поиск cf_field_no=value
-	function Mysql_Where_No($pieces = NULL, $fieldname = NULL, $value = NULL) {
-		return $pieces;
-	}
 	// Весь остальной поиск. cf_field_less=value,cf_field_more=value
 	function Mysql_Where_Special($pieces = NULL, $param = NULL, $fieldname = NULL, $value = NULL) {
 		return $pieces;

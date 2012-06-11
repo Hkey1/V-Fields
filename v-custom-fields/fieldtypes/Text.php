@@ -5,15 +5,13 @@ class Text extends FieldType {
 	
 	function __construct() {
 		parent::__construct ();
-		$this->default_options = array ("default" => "", "max_length" => 1000, "wysiwyg" => false );
+		$this->default_options = array ("max_length" => array ("type" => "int", "value" => 1000, "label" => "Max length" ), "default" => array ("type" => "text", "value" => "", "label" => "Default" ), "wysiwyg" => array ("type" => "bool", "value" => false, "label" => "Wysiwyg" ), "search_enabled" => true, "isearch_enabled" => false );
 		$this->text_search = true;
 		$this->index_search = false;
 	}
 	
 	function ValidateOptions($array) {
-		$err_status = "";
-		$err_status .= parent::Validate ( $array ['fieldname'], "length", 20 );
-		$err_status .= parent::Validate ( $array ['fieldname'], "string" );
+		$err_status = parent::ValidateOptions($array);
 		return $err_status;
 	}
 	// ///////////////////////////
@@ -28,85 +26,6 @@ class Text extends FieldType {
 			return "<div class=\"error\"><p>\"" . $array ['name'] . "\" is longer than \"" . $options ['max_length'] . "\" symbols.</p></div>";
 		}
 		return true;
-	}
-	
-	function LoadOptions($load_type = "new", $data = NULL) {
-		$str = "";
-		$selection = make_select_list ( 'Text' );
-		// Если вызываем функции для загрузки опций существующего поля
-		if ($load_type == "load") {
-			if ($data != NULL) {
-				$options = $data ['options'];
-				if (! strlen ( $options ))
-					return 0;
-				$array = unserialize ( $options );
-				$select = $array ['select'];
-				$name = $array ['fieldname'];
-				$max_length = $array ['max_length'];
-				$default = $array ['default'];
-				$search = $array ['search'];
-				$wysiwyg = $array ['html_editor'];
-				($search == 1) ? $search_checked = "checked=\"true\"" : $search_checked = "";
-				($wysiwyg == 1) ? $wysiwyg_checked = "checked=\"true\"" : $wysiwyg_checked = "";
-				$str = "
-				<div class=\"section\">
-					<h3>
-					     <span class=\"container\">
-					     	<input type=\"hidden\" name=\"hr\" value=\"true\">
-							<input type=\"text\" name=\"fieldname\" class=\"name\" value=\"$name\" />
-							<span>
-							<select class=\"select\" name=\"select\">" . $selection . "</select>
-							<span class=\"ui-icon ui-icon-closethick\"></span>
-							</span>
-						</span>		
-					</h3>
-					<div class=\"field_settings\">
-						<p>Max Length:<br/> <input type=\"text\" name=\"max_length\" class=\"default\" value=\"" . $max_length . "\"/></p>					
-						<p>Default:<br/> <textarea name=\"default\" cols=80 rows=10>" . $default . "</textarea></p>
-						<p>Wysiwyg: 
-							<input type=\"checkbox\" name=\"html_editor\"  class=\"html_editor\" value=\"1\" $wysiwyg_checked />
-						</p>
-						<p><b>text search</b> <input type=\"checkbox\" name=\"search\" value=\"1\" $search_checked /></p>
-					</div>
-				</div>";
-			}
-		} else {
-			$this->text_search ? $search_checked = "checked=\"true\"" : $search_checked = "";
-			$this->default_options ['wysiwyg'] ? $wysiwyg_checked = "checked=\"true\"" : $wysiwyg_checked = "";
-			if ($load_type == "new") {
-				$str = "
-				<div class=\"section\">
-				<h3>
-					<span class=\"container\">
-						<input type=\"hidden\" name=\"hr\" value=\"true\">
-						<input type=\"text\" name=\"fieldname\" class=\"name\" value=\"\" />
-					<span>
-						<select class=\"select\" name=\"select\">" . $selection . "</select>
-						<span class=\"ui-icon ui-icon-closethick\"></span>
-					</span>
-					</span>
-				</h3>
-				<div class=\"field_settings\">
-				<p>Max Length:<br/> <input type=\"text\" name=\"max_length\" class=\"default\" value=\"" . $this->default_options ['max_length'] . "\"/></p>
-				<p>Default:<br/> <textarea name=\"default\" cols=80 rows=10>" . $this->default_options ['default'] . "</textarea></p>
-				<p>Wysiwyg:
-				<input type=\"checkbox\" name=\"html_editor\"  class=\"html_editor\" value=\"1\" $wysiwyg_checked />
-				</p>
-				<p><b>text search</b> <input type=\"checkbox\" name=\"search\" value=\"1\" $search_checked /></p>
-				</div>
-				</div>";
-			
-			} elseif ($load_type == "change") {
-				$str = "				
-				<p>Max Length:<br/> <input type=\"text\" name=\"max_length\" class=\"default\" value=\"" . $this->default_options ['max_length'] . "\"/></p>
-				<p>Default:<br/> <textarea name=\"default\" cols=80 rows=10>" . $this->default_options ['default'] . "</textarea></p>
-				<p>Wysiwyg:
-				<input type=\"checkbox\" name=\"html_editor\"  class=\"html_editor\" value=\"1\" $wysiwyg_checked />
-				</p>
-				<p><b>text search</b> <input type=\"checkbox\" name=\"search\" value=\"1\" $search_checked /></p>";
-			}
-		}
-		return $str;
 	}
 	
 	function OutField($array, $post_id = 0) {
@@ -124,7 +43,7 @@ class Text extends FieldType {
 			if (! $value)
 				$value = "";
 		}
-		if ($array ['html_editor'] == '1')
+		if ($array ['wysiwyg'] == '1')
 			$result = $result . "<script>$(document).ready(function()
 		{
 		tinyMCE.init({
@@ -149,8 +68,6 @@ class Text extends FieldType {
 		$options = unserialize ( $array ['options'] );
 		$max_length = $options ['max_length'];
 		$formatted = "";
-		// if($options['view'] == '0' || $options['view'] == '3')
-		// $formatted = $array['data'];
 		if ($params ['view'] == 'list') {
 			$content = explode ( "\n", $array ['data'] );
 			foreach ( $content as $row ) {
@@ -218,14 +135,6 @@ class Text extends FieldType {
 		}
 		// ////
 		echo $formatted;
-	}
-	
-	function Mysql_Where($pieces = NULL, $fieldname = NULL, $value = NULL) {
-		return $pieces;
-	}
-	// Поиск cf_field_no=value
-	function Mysql_Where_No($pieces = NULL, $fieldname = NULL, $value = NULL) {
-		return $pieces;
 	}
 	// Весь остальной поиск. cf_field_less=value,cf_field_more=value
 	function Mysql_Where_Special($pieces = NULL, $param = NULL, $fieldname = NULL, $value = NULL) {

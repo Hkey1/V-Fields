@@ -12,7 +12,6 @@ include (__DIR__ . "/v-custom-fields.class.php");
 //
 add_action ( "wp_head", "wp_head_js_to_content", 0 );
 
-
 function wp_head_js_to_content() {
 	echo '<link rel="stylesheet" href="/wp-content/plugins/v-custom-fields/css/custom-theme/jquery-ui-1.8.16.custom.css">';
 	wp_deregister_script ( 'jquery' );
@@ -258,15 +257,15 @@ CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "v_field_options` (
 		fclose ( $fh );
 	}
 	// $options =
-// "hr=true&field_post_connect=&fieldname=price&select=Digit&default=20&step=10&min=0&max=9000000&search=1&isearch=1&hr=true&fieldname=description&select=Text&max_length=1000&default=&html_editor=1&search=1";
+	// "hr=true&field_post_connect=&fieldname=price&select=Digit&default=20&step=10&min=0&max=9000000&search=1&isearch=1&hr=true&fieldname=description&select=Text&max_length=1000&default=&html_editor=1&search=1";
 
 }
 
 function v_custom_fields_deactivate() {
 	if (is_file ( __DIR__ . "/field_options.ini" )) {
 		$fh = fopen ( __DIR__ . "/field_options.ini", "w" ) or die ( "File ($file) does not exist!" );
-		fwrite($fh,"");
-		fclose($fh);
+		fwrite ( $fh, "" );
+		fclose ( $fh );
 	}
 	return 0;
 }
@@ -418,23 +417,20 @@ function v_intercept_query_clauses($pieces) {
 			 */
 			if (preg_match ( '/^cf_([a-zA-Z0-9_]*)(?>(_more|_less|_from|_to|_void_|_no))/i', $key, $parts )) {
 				$fieldname = strtolower ( $parts [1] );
-				$param = substr(strtolower( $parts[2]),1);
+				$param = substr ( strtolower ( $parts [2] ), 1 );
 				$result = $wpdb->get_results ( "SELECT name FROM  " . $wpdb->prefix . "v_field_types WHERE id=(SELECT fieldtype FROM  " . $wpdb->prefix . "v_field_options WHERE name = '$fieldname')", OBJECT );
 				$fieldclass = $result [0]->name;
 				if (! $fieldclass)
 					continue;
 				$current_class = new ReflectionClass ( $fieldclass );
 				$current_object = $current_class->newInstance ();
-				if($param == "no")
+				if ($param == "no")
 					$pieces = $current_object->Mysql_Where_No ( $pieces, $fieldname, $value );
 				else
 					$pieces = $current_object->Mysql_Where_Special ( $pieces, $param, $fieldname, $value );
-				unset($current_object);
-			}
-			 else
-			{
-				if(preg_match ( '/^cf_([a-zA-Z0-9_]*)/i', $key, $parts ))
-				{
+				unset ( $current_object );
+			} else {
+				if (preg_match ( '/^cf_([a-zA-Z0-9_]*)/i', $key, $parts )) {
 					$fieldname = strtolower ( $parts [1] );
 					$result = $wpdb->get_results ( "SELECT name FROM  " . $wpdb->prefix . "v_field_types WHERE id=(SELECT fieldtype FROM  " . $wpdb->prefix . "v_field_options WHERE name = '$fieldname')", OBJECT );
 					$fieldclass = $result [0]->name;
@@ -443,10 +439,9 @@ function v_intercept_query_clauses($pieces) {
 					$current_class = new ReflectionClass ( $fieldclass );
 					$current_object = $current_class->newInstance ();
 					$pieces = $current_object->Mysql_Where ( $pieces, $fieldname, $value );
-					unset($current_object);
-				}
-				else
-					continue;	
+					unset ( $current_object );
+				} else
+					continue;
 			}
 		}
 		// Добавляеем условие что ищем тока по полям с включенным индесным
@@ -465,21 +460,19 @@ function v_intercept_query_clauses($pieces) {
 /*
  * SHORTCODE
  * */
-function v_shortcode_handler( $atts, $content = null ) {
-	global $post,$wpdb;
-	if(isset($atts['name']))
-	{
+function v_shortcode_handler($atts, $content = null) {
+	global $post, $wpdb;
+	if (isset ( $atts ['name'] )) {
 		$post_id = $post->ID;
-		$fieldname = mysql_escape_string($atts['name']);
-		$result = $wpdb->get_results("SELECT `data` FROM `" . $wpdb->prefix . "v_fields` WHERE translit = '$fieldname' AND `post_id` = '$post_id' LIMIT 1",OBJECT);
-		if($result[0])
-			return $result[0]->data;
+		$fieldname = mysql_escape_string ( $atts ['name'] );
+		$result = $wpdb->get_results ( "SELECT `data` FROM `" . $wpdb->prefix . "v_fields` WHERE translit = '$fieldname' AND `post_id` = '$post_id' LIMIT 1", OBJECT );
+		if ($result [0])
+			return $result [0]->data;
 	}
 }
-add_shortcode( 'cfield', 'v_shortcode_handler' );
+add_shortcode ( 'cfield', 'v_shortcode_handler' );
 /*
  * END SHORTCODE
- * */
-
+ */
 
 ?>

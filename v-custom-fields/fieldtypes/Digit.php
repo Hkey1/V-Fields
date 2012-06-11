@@ -4,15 +4,13 @@ include (__DIR__ . '/../v-abstract-fieldtype.php');
 class Digit extends FieldType {
 	function __construct() {
 		parent::__construct ();
-		$this->default_options = array ("default" => 0, "step" => 10, "min" => 0, "max" => 1000 );
+		$this->default_options = array ("default" => array ("type" => "int", "value" => 0, "label" => "Default" ), "step" => array ("type" => "int", "value" => 10, "label" => "Step" ), "min" => array ("type" => "int", "value" => 0, "label" => "Min" ), "max" => array ("type" => "int", "value" => 1000, "label" => "Max" ), "search_enabled" => true, "isearch_enabled" => true );
 		$this->text_search = true;
 		$this->index_search = true;
 	}
 	
 	function ValidateOptions($array) {
-		$err_status = "";
-		$err_status .= parent::Validate ( $array ['fieldname'], "length", 20 );
-		$err_status .= parent::Validate ( $array ['fieldname'], "string" );
+		$err_status = parent::ValidateOptions($array);
 		$err_status .= parent::Validate ( $array ['max'], "isdigit" );
 		$err_status .= parent::Validate ( $array ['min'], "isdigit" );
 		$err_status .= parent::Validate ( $array ['step'], "isdigit" );
@@ -41,92 +39,6 @@ class Digit extends FieldType {
 			return "<div class=\"error\"><p>\"" . $array ['name'] . "\" is less than min. Will be used default value \"" . $options ['default'] . "\".</p></div>";
 		}
 		return true;
-	}
-	
-	function LoadOptions($load_type = "new", $data = NULL) {
-		$str = "";
-		$selection = make_select_list ( 'Digit' );
-		// Если вызываем функции для загрузки опций существующего поля
-		if ($load_type == "load") {
-			if ($data != NULL) {
-				$options = $data ['options'];
-				if (! strlen ( $options ))
-					return 0;
-				$array = unserialize ( $options );
-				$id = $data ['id'];
-				$select = $array ['select'];
-				$name = $array ['fieldname'];
-				$min = $array ['min'];
-				$max = $array ['max'];
-				$step = $array ['step'];
-				$default = $array ['default'];
-				$search = $array ['search'];
-				$isearch = $array ['isearch'];
-				($search == 1) ? $search_checked = "checked=\"true\"" : $search_checked = "";
-				($isearch == 1) ? $isearch_checked = "checked=\"true\"" : $isearch_checked = "";
-				$str = "
-				<div class=\"section\">
-					<h3>
-						<span class=\"container\">
-							<input type=\"hidden\" name=\"hr\" value=\"true\">
-							<input type=\"text\" name=\"fieldname\" class=\"name\" value=\"$name\" />
-						<span>
-							<select class=\"select\" name=\"select\">$selection</select>
-							<span class=\"ui-icon ui-icon-closethick\"></span>
-						</span>
-						</span>
-					</h3>
-					<div class=\"field_settings\">
-						<p>Default:<br/> <input type=\"text\" name=\"default\" class=\"default\" value=\"$default\"/></p>
-						<p>Step:<br/> <input type=\"text\" name=\"step\" class=\"step\" value=\"$step\"/></p>
-						<p>Min value:<br/> <input type=\"text\" name=\"min\" class=\"min\" value=\"$min\"/></p>
-						<p>Max value:<br/> <input type=\"text\" name=\"max\" class=\"max\" value=\"$max\"/></p>
-						<p><b>text search</b> <input type=\"checkbox\"  name=\"search\" value=\"1\" $search_checked /></p>
-						<p><b>index search</b> <input type=\"checkbox\"  name=\"isearch\" value=\"1\" $isearch_checked /></p>
-					</div>
-				</div>";
-			}
-		} else {
-			$this->text_search ? $search_checked = "checked=\"true\"" : $search_checked = "";
-			$this->index_search ? $isearch_checked = "checked=\"true\"" : $isearch_checked = "";
-			// Если создаем новое поле
-			if ($load_type == "new") {
-				$str = "
-				<div class=\"section\">
-					<h3>
-						<span class=\"container\">
-							<input type=\"hidden\" name=\"hr\" value=\"true\">
-							<input type=\"text\" name=\"fieldname\" class=\"name\" value=\"\" />
-						<span>
-							<select class=\"select\" name=\"select\">$selection</select>
-							<span class=\"ui-icon ui-icon-closethick\"></span>
-						</span>
-						</span>
-					</h3>
-					<div class=\"field_settings\">
-						<p>Default:<br/> <input type=\"text\" name=\"default\" class=\"default\" value=\"" . $this->default_options ['default'] . "\"/></p>
-						<p>Step:<br/> <input type=\"text\" name=\"step\" class=\"step\" value=\"" . $this->default_options ['step'] . "\"/></p>
-						<p>Min value:<br/> <input type=\"text\" name=\"min\" class=\"min\" value=\"" . $this->default_options ['min'] . "\"/></p>
-						<p>Max value:<br/> <input type=\"text\" name=\"max\" class=\"max\" value=\"" . $this->default_options ['max'] . "\"/></p>
-						<p><b>text search</b> <input type=\"checkbox\"  name=\"search\" value=\"1\" $search_checked /></p>
-						<p><b>index search</b> <input type=\"checkbox\"  name=\"isearch\" value=\"1\" $isearch_checked /></p>
-					</div>
-				</div>";
-			} 			// Если меняем существующее поле на Digit
-			elseif ($load_type == "change") {
-				$str = "
-					<div class=\"field_settings\">
-						<p>Default:<br/> <input type=\"text\" name=\"default\" class=\"default\" value=\"" . $this->default_options ['default'] . "\"/></p>
-						<p>Step:<br/> <input type=\"text\" name=\"step\" class=\"step\" value=\"" . $this->default_options ['step'] . "\"/></p>
-						<p>Min value:<br/> <input type=\"text\" name=\"min\" class=\"min\" value=\"" . $this->default_options ['min'] . "\"/></p>
-						<p>Max value:<br/> <input type=\"text\" name=\"max\" class=\"max\" value=\"" . $this->default_options ['max'] . "\"/></p>
-						<p><b>text search</b> <input type=\"checkbox\"   name=\"search\" value=\"1\" $search_checked /></p>
-						<p><b>index search</b> <input type=\"checkbox\"   name=\"isearch\" value=\"1\" $isearch_checked /></p>
-					</div>
-				";
-			}
-		}
-		return $str;
 	}
 	
 	function OutField($array, $post_id = 0) {
@@ -300,7 +212,7 @@ class Digit extends FieldType {
 		$result .= "</br>";
 		return $result;
 	}
-	
+	// Обновление значения поля на лету(во фронтэнде сайта)
 	function UpdateField($fieldid, $data, $params = NULL) {
 		if ($this->user_level != 10)
 			return;
@@ -330,33 +242,9 @@ class Digit extends FieldType {
 		$data = $this->make_dec_div ( $params, $data );
 		echo $data;
 	}
-	
 	/*
 	 * Поиск
 	 */
-	function Mysql_Where($pieces = NULL, $fieldname = NULL, $value = NULL) {
-		global $wpdb;
-		if (is_numeric ( $value )) {
-			$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value = '$value')";
-		} else {
-			$values = explode ( "||", $value );
-			if (is_numeric ( $values [0] ) || is_numeric ( $values [1] )) {
-				$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND ( " . $wpdb->prefix . "postmeta.meta_value = '$values[0]' OR  " . $wpdb->prefix . "postmeta.meta_value = '$values[1]' ))";
-			} else {
-				if ($value == "_void_")
-					$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value = '')";
-			}
-		}
-		return $pieces;
-	}
-	
-	function Mysql_Where_No($pieces = NULL, $fieldname = NULL, $value = NULL) {
-		global $wpdb;
-		if (is_numeric ( $value ))
-			$pieces ['where'] .= " AND ( " . $wpdb->prefix . "postmeta.meta_key = '$fieldname' AND  " . $wpdb->prefix . "postmeta.meta_value <> '$value')";
-		return $pieces;
-	}
-	
 	function Mysql_Where_Special($pieces = NULL, $param = NULL, $fieldname = NULL, $value = NULL) {
 		global $wpdb;
 		switch ($param) {
